@@ -15,3 +15,4 @@ class AppConstants {
   static const int colorCritico = 0xFFDC3545;
   static const int colorPrimario = 0xFF1E6091;
 }
+// URL API backend NestJS configurada
