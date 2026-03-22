@@ -52,3 +52,4 @@ class AuthService {
     await prefs.remove(AppConstants.usuarioKey);
   }
 }
+// Login con JWT y almacenamiento en SharedPreferences completado
