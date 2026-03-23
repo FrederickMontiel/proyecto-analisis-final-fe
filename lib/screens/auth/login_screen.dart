@@ -146,3 +146,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+// Pantalla login: validacion, carga, redireccion por rol completada
