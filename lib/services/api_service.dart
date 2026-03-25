@@ -48,3 +48,4 @@ class ApiService {
     return jsonDecode(response.body);
   }
 }
+// ApiService: manejo 401 auto-logout, errores del servidor
