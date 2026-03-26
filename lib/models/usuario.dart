@@ -34,3 +34,4 @@ class Usuario {
   bool get esOperador => rol == 'Operador';
   bool get esHabitante => rol == 'Habitante';
 }
+// Modelo Usuario con rol helpers: esPresidente, esTesorero, etc
