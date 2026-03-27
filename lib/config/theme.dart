@@ -37,3 +37,4 @@ class AppTheme {
     ),
   );
 }
+// Tema: 18px minimo texto, 52px botones, colores semanticos accesibles
