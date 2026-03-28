@@ -54,4 +54,4 @@ class DashboardOperador extends StatelessWidget {
       ),
     ),
   );
-}
+}// Dashboard operador: acciones de registrar nivel, lecturas, incidencias
