@@ -131,4 +131,4 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
       ),
     ),
   );
-}
+}// Indicador nivel agua en tiempo real con colores semanticos
