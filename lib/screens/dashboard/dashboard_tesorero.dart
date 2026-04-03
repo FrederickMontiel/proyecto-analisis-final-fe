@@ -55,4 +55,4 @@ class DashboardTesorero extends StatelessWidget {
       ),
     ),
   );
-}
+}// Dashboard tesorero: pago, gastos, estado cuenta, morosos, transparencia
