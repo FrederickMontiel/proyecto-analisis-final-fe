@@ -52,4 +52,4 @@ class DashboardHabitante extends StatelessWidget {
       ),
     ),
   );
-}
+}// Pantalla registro pago: busqueda hogar, metodo, periodo aplicado
