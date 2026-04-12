@@ -38,3 +38,4 @@ class AppTheme {
   );
 }
 // Tema: 18px minimo texto, 52px botones, colores semanticos accesibles
+// Graficas fl_chart: pastel gastos, barras ingresos vs gastos
