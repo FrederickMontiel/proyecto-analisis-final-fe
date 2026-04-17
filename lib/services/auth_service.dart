@@ -53,3 +53,4 @@ class AuthService {
   }
 }
 // Login con JWT y almacenamiento en SharedPreferences completado
+// Pantalla analisis consumo: tabla con indicadores bajo/normal/alto/critico
