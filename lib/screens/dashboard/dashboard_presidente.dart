@@ -132,3 +132,4 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
     ),
   );
 }// Indicador nivel agua en tiempo real con colores semanticos
+// Grafica tendencia consumo por hogar con fl_chart LineChart
