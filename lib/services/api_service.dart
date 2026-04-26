@@ -50,3 +50,4 @@ class ApiService {
 }
 // ApiService: manejo 401 auto-logout, errores del servidor
 // Endpoints pagos y gastos conectados al backend NestJS
+// API sectores y mantenimientos conectadas
