@@ -36,3 +36,4 @@ class Usuario {
 }
 // Modelo Usuario con rol helpers: esPresidente, esTesorero, etc
 // Correcciones sprint 2: estado cuenta muestra saldo correcto
+// Parametrizacion: grupos por categoria, validacion tipo dato, confirmacion
