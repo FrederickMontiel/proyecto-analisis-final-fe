@@ -148,3 +148,4 @@ class _LoginScreenState extends State<LoginScreen> {
 }
 // Pantalla login: validacion, carga, redireccion por rol completada
 // Pantallas incidencias: lista con estados coloreados y formulario reporte
+// Pruebas finales: todos los flujos del sistema verificados en Android
