@@ -7,6 +7,7 @@ import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/file_service.dart';
 import '../../services/proveedores_service.dart';
+import '../../services/debug_service.dart';
 
 class MantenimientosScreen extends StatefulWidget {
   const MantenimientosScreen({super.key});
@@ -353,21 +354,31 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                   ]),
                   ElevatedButton.icon(
                     onPressed: () async {
+                      DebugService.log('FilePicker: onClick');
                       try {
+                        DebugService.log('FilePicker: Llamando pickFiles, kIsWeb=$kIsWeb');
                         final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
+                        DebugService.log('FilePicker: result=$result');
                         if (result != null && result.files.isNotEmpty) {
+                          DebugService.log('FilePicker: archivos seleccionados');
                           final file = result.files.first;
+                          DebugService.log('FilePicker: file.name=${file.name}, bytes=${file.bytes != null}, path=${file.path}');
                           dynamic uploadData;
                           String? fileName;
                           if (kIsWeb && file.bytes != null) {
                             uploadData = file.bytes!;
                             fileName = file.name;
+                            DebugService.log('FilePicker: Web, bytes=${file.bytes!.length}');
                           } else if (!kIsWeb && file.path != null) {
                             uploadData = File(file.path!);
+                            DebugService.log('FilePicker: Mobile, path=${file.path}');
                           } else {
+                            DebugService.log('FilePicker: No bytes ni path disponibles');
                             return;
                           }
+                          DebugService.log('FilePicker: Subiendo archivo, fileName=$fileName');
                           final url = await FileService.uploadImage(uploadData, fileName: fileName);
+                          DebugService.log('FilePicker: URL response=$url');
                           if (url != null) {
                             setSt(() { fotoUrl = url; });
                             if (ctx2.mounted) {
@@ -382,9 +393,11 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                               );
                             }
                           }
+                        } else {
+                          DebugService.log('FilePicker: result es null o sin archivos');
                         }
                       } catch (e) {
-                        // Silenciosamente ignorar error de selección de archivo
+                        DebugService.log('FilePicker: Error exception=$e');
                       }
                     },
                     icon: const Icon(Icons.camera_alt, size: 16),
