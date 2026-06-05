@@ -302,11 +302,7 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
                         }
                       }
                     } catch (e) {
-                      if (ctx2.mounted) {
-                        ScaffoldMessenger.of(ctx2).showSnackBar(
-                          const SnackBar(content: Text('Permiso denegado o error al seleccionar foto'), backgroundColor: AppTheme.error)
-                        );
-                      }
+                      // Silenciosamente ignorar error de selección de archivo
                     }
                   },
                   icon: const Icon(Icons.camera_alt, size: 18),
