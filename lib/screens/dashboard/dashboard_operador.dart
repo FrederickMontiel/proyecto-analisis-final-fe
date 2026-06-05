@@ -10,7 +10,7 @@ import '../lecturas/lecturas_screen.dart';
 import '../incidencias/incidencias_screen.dart';
 import '../analisis/analisis_screen.dart';
 import '../notificaciones/notificaciones_screen.dart';
-import '../calendario/calendario_screen.dart';
+import '../distribucion/distribucion_screen.dart';
 import '../mantenimientos/mantenimientos_screen.dart';
 
 class DashboardOperador extends StatefulWidget {
@@ -304,7 +304,7 @@ class _DashboardOperadorState extends State<DashboardOperador> {
                 ),
                 _accionesGrid([
                   ('Lecturas de Contadores', Icons.speed, const Color(0xFF0D6EFD), () => _ir(const LecturasScreen())),
-                  ('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const CalendarioScreen())),
+                  ('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const DistribucionScreen())),
                   ('Registrar Mantenimiento', Icons.build, const Color(0xFF6F42C1), () => _ir(const MantenimientosScreen())),
                   ('Historial de Incidencias', Icons.history, const Color(0xFFFD7E14), () => _ir(const IncidenciasScreen())),
                   ('Análisis de Consumo', Icons.analytics, const Color(0xFF0DCAF0), () => _ir(const AnalisisConsumoScreen())),
