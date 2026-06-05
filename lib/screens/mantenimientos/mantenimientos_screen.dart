@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../config/theme.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/file_service.dart';
 import '../../services/proveedores_service.dart';
 
 class MantenimientosScreen extends StatefulWidget {
@@ -157,6 +161,7 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
     String tipo = 'Preventivo';
     String componente = 'Tanques';
     int? idProveedorSeleccionado;
+    String? fotoUrl;
     final formKey = GlobalKey<FormState>();
     final proveedores = await ProveedoresService.obtenerProveedores();
 
@@ -269,7 +274,11 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('Hora de Inicio *', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  GestureDetector(
+                  TextFormField(
+                    controller: horaInicioCtrl,
+                    readOnly: true,
+                    decoration: const InputDecoration(border: OutlineInputBorder(), suffixIcon: Icon(Icons.schedule)),
+                    validator: (v) => v!.isEmpty ? 'Requerida' : null,
                     onTap: () async {
                       final time = await showTimePicker(context: ctx2, initialTime: const TimeOfDay(hour: 8, minute: 0));
                       if (time != null) {
@@ -277,19 +286,17 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                         setSt(() {});
                       }
                     },
-                    child: TextFormField(
-                      controller: horaInicioCtrl,
-                      readOnly: true,
-                      decoration: const InputDecoration(border: OutlineInputBorder(), suffixIcon: Icon(Icons.schedule)),
-                      validator: (v) => v!.isEmpty ? 'Requerida' : null,
-                    ),
                   ),
                 ])),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('Hora de Finalización *', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  GestureDetector(
+                  TextFormField(
+                    controller: horaFinCtrl,
+                    readOnly: true,
+                    decoration: const InputDecoration(border: OutlineInputBorder(), suffixIcon: Icon(Icons.schedule)),
+                    validator: (v) => v!.isEmpty ? 'Requerida' : null,
                     onTap: () async {
                       final time = await showTimePicker(context: ctx2, initialTime: const TimeOfDay(hour: 9, minute: 0));
                       if (time != null) {
@@ -297,12 +304,6 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                         setSt(() {});
                       }
                     },
-                    child: TextFormField(
-                      controller: horaFinCtrl,
-                      readOnly: true,
-                      decoration: const InputDecoration(border: OutlineInputBorder(), suffixIcon: Icon(Icons.schedule)),
-                      validator: (v) => v!.isEmpty ? 'Requerida' : null,
-                    ),
                   ),
                 ])),
               ]),
@@ -338,6 +339,56 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 14),
+              const Text('Foto de evidencia', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+                child: Wrap(spacing: 10, runSpacing: 8, alignment: WrapAlignment.spaceBetween, children: [
+                  Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.image, color: fotoUrl != null ? Colors.blue : Colors.grey),
+                    const SizedBox(width: 6),
+                    Text(fotoUrl != null ? 'Foto adjuntada' : 'Sin foto', style: const TextStyle(fontSize: 14)),
+                  ]),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
+                      if (result != null && result.files.isNotEmpty) {
+                        final file = result.files.first;
+                        dynamic uploadData;
+                        String? fileName;
+                        if (kIsWeb && file.bytes != null) {
+                          uploadData = file.bytes!;
+                          fileName = file.name;
+                        } else if (!kIsWeb && file.path != null) {
+                          uploadData = File(file.path!);
+                        } else {
+                          return;
+                        }
+                        final url = await FileService.uploadImage(uploadData, fileName: fileName);
+                        if (url != null) {
+                          setSt(() { fotoUrl = url; });
+                          if (ctx2.mounted) {
+                            ScaffoldMessenger.of(ctx2).showSnackBar(
+                              const SnackBar(content: Text('Foto cargada'), backgroundColor: AppTheme.exito, duration: Duration(seconds: 2))
+                            );
+                          }
+                        } else {
+                          if (ctx2.mounted) {
+                            ScaffoldMessenger.of(ctx2).showSnackBar(
+                              const SnackBar(content: Text('Error al cargar foto'), backgroundColor: AppTheme.error, duration: Duration(seconds: 2))
+                            );
+                          }
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.camera_alt, size: 16),
+                    label: const Text('Seleccionar Foto'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8)),
+                  ),
+                ]),
+              ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
@@ -370,6 +421,7 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                         'id_proveedor': idProveedorSeleccionado,
                         'componente': componente,
                         'duracion_horas': duracionHoras,
+                        'foto_url': fotoUrl,
                       });
                       if (ctx.mounted) Navigator.pop(ctx);
                       _cargar();
