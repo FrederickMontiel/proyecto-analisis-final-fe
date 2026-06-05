@@ -69,41 +69,47 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
 
   Widget _cardCalendario(Map<String, dynamic> cal) {
     final detalles = (cal['detalles'] as List? ?? []).cast<Map<String, dynamic>>();
-    return ExpansionTile(
-      title: Text(cal['nombre_calendario']?.toString() ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text('${detalles.length} horarios registrados'),
-      children: [
-        if (cal['descripcion'] != null)
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(cal['nombre_calendario']?.toString() ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('${detalles.length} horarios registrados'),
+            trailing: const Icon(Icons.schedule),
+          ),
+          if (cal['descripcion'] != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(cal['descripcion'], style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            ),
+          if (detalles.isNotEmpty)
+            ...detalles.map((detalle) => _itemDetalle(detalle, cal['id_calendario']))
+          else
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Sin horarios asignados', style: TextStyle(color: Colors.grey, fontSize: 12)),
+            ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(cal['descripcion'], style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text('Agregar Horario'),
+                  onPressed: () => _mostrarFormularioDetalle(cal['id_calendario'], null),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text('Editar'),
+                  onPressed: () => _mostrarFormularioCalendario(cal),
+                ),
+              ],
+            ),
           ),
-        if (detalles.isNotEmpty)
-          ...detalles.map((detalle) => _itemDetalle(detalle, cal['id_calendario']))
-        else
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('Sin horarios', style: TextStyle(color: Colors.grey)),
-          ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Agregar Horario'),
-                onPressed: () => _mostrarFormularioDetalle(cal['id_calendario'], null),
-              ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Editar'),
-                onPressed: () => _mostrarFormularioCalendario(cal),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
