@@ -49,6 +49,10 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _cargar),
+          IconButton(
+            icon: const Icon(Icons.bug_report, color: Colors.white),
+            onPressed: () => DebugService.showLogsDialog(context),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
