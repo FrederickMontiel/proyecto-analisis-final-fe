@@ -9,6 +9,7 @@ import '../morosos/morosos_screen.dart';
 import '../estado_cuenta/estado_cuenta_screen.dart';
 import '../transparencia/transparencia_screen.dart';
 import '../notificaciones/notificaciones_screen.dart';
+import '../distribucion/distribucion_screen.dart';
 
 class DashboardTesorero extends StatefulWidget {
   const DashboardTesorero({super.key});
@@ -207,6 +208,7 @@ class _DashboardTesoreroState extends State<DashboardTesorero> {
                 ),
                 _accionesGrid([
                   ('Registrar Pago', Icons.payment, const Color(0xFF198754), () => _ir(const PagosScreen())),
+                  ('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const DistribucionScreen())),
                   ('Hogares en Mora', Icons.warning, const Color(0xFFDC3545), () => _ir(const MorososScreen())),
                   ('Estado de Cuenta', Icons.account_balance_wallet, const Color(0xFF0D6EFD), () => _ir(const EstadoCuentaScreen())),
                   ('Reportes Financieros', Icons.bar_chart, const Color(0xFF6F42C1), () => _ir(const TransparenciaScreen())),
