@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../config/theme.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/proveedores_service.dart';
 
 class MantenimientosScreen extends StatefulWidget {
   const MantenimientosScreen({super.key});
@@ -101,6 +102,9 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
     final color = _colorTipo(tipo);
     final fecha = m['fecha_realizacion']?.toString().substring(0, 10) ?? '';
     final costo = double.tryParse(m['costo']?.toString() ?? '0') ?? 0;
+    final proveedor = m['proveedor'] as Map<String, dynamic>?;
+    final componente = m['componente']?.toString();
+    final duracion = double.tryParse(m['duracion_horas']?.toString() ?? '0');
     return Container(
       decoration: BoxDecoration(
         color: Colors.white, borderRadius: BorderRadius.circular(12),
@@ -120,6 +124,20 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
         ]),
         const SizedBox(height: 6),
         Text(m['descripcion']?.toString() ?? '', style: const TextStyle(fontSize: 14)),
+        if (componente != null && componente.isNotEmpty) ...[
+          const SizedBox(height: 3),
+          Text('Componente: $componente', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        ],
+        if (proveedor != null) ...[
+          const SizedBox(height: 3),
+          Text('Proveedor: ${proveedor['nombre_proveedor'] ?? 'N/A'}',
+              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        ],
+        if (duracion != null && duracion > 0) ...[
+          const SizedBox(height: 3),
+          Text('Duración: ${duracion.toStringAsFixed(1)} horas',
+              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        ],
         if (costo > 0) ...[
           const SizedBox(height: 4),
           Text('Costo: Q ${costo.toStringAsFixed(2)}',
@@ -129,7 +147,7 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
     );
   }
 
-  void _mostrarFormulario() {
+  void _mostrarFormulario() async {
     final descCtrl = TextEditingController();
     final costoCtrl = TextEditingController();
     final fechaCtrl = TextEditingController(text: DateTime.now().toIso8601String().substring(0, 10));
@@ -138,7 +156,9 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
     final materialesCtrl = TextEditingController();
     String tipo = 'Preventivo';
     String componente = 'Tanques';
+    int? idProveedorSeleccionado;
     final formKey = GlobalKey<FormState>();
+    final proveedores = await ProveedoresService.obtenerProveedores();
 
     showModalBottomSheet(
       context: context,
@@ -186,12 +206,57 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                 decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Seleccione...'),
               ),
               const SizedBox(height: 14),
+              const Text('Proveedor/Responsable', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              DropdownButtonFormField<int>(
+                value: idProveedorSeleccionado,
+                items: [
+                  const DropdownMenuItem<int>(value: null, child: Text('Seleccione un proveedor...')),
+                  ...proveedores.map((p) => DropdownMenuItem<int>(
+                    value: p['id_proveedor'] as int,
+                    child: Text(p['nombre_proveedor']?.toString() ?? 'Sin nombre'),
+                  )),
+                ],
+                onChanged: (v) => setSt(() { idProveedorSeleccionado = v; }),
+                decoration: const InputDecoration(border: OutlineInputBorder(), hintText: 'Seleccione...'),
+              ),
+              if (idProveedorSeleccionado != null && proveedores.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ...proveedores
+                          .where((p) => p['id_proveedor'] == idProveedorSeleccionado)
+                          .map((p) => Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (p['especialidad'] != null)
+                                Text('Especialidad: ${p['especialidad']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              if (p['telefono'] != null)
+                                Text('Tel: ${p['telefono']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              if (p['correo'] != null)
+                                Text('Email: ${p['correo']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
+                          )),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 14),
               const Text('Fecha del Mantenimiento *', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               TextFormField(
                 controller: fechaCtrl,
                 readOnly: true,
                 decoration: const InputDecoration(border: OutlineInputBorder(), suffixIcon: Icon(Icons.calendar_today)),
+                validator: (v) => v!.isEmpty ? 'Fecha requerida' : null,
                 onTap: () async {
                   final d = await showDatePicker(
                     context: ctx2, initialDate: DateTime.now(),
@@ -202,17 +267,43 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
               const SizedBox(height: 14),
               Row(children: [
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Hora de Inicio', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Hora de Inicio *', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  TextFormField(controller: horaInicioCtrl,
-                      decoration: const InputDecoration(border: OutlineInputBorder())),
+                  GestureDetector(
+                    onTap: () async {
+                      final time = await showTimePicker(context: ctx2, initialTime: const TimeOfDay(hour: 8, minute: 0));
+                      if (time != null) {
+                        horaInicioCtrl.text = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                        setSt(() {});
+                      }
+                    },
+                    child: TextFormField(
+                      controller: horaInicioCtrl,
+                      readOnly: true,
+                      decoration: const InputDecoration(border: OutlineInputBorder(), suffixIcon: Icon(Icons.schedule)),
+                      validator: (v) => v!.isEmpty ? 'Requerida' : null,
+                    ),
+                  ),
                 ])),
                 const SizedBox(width: 12),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Text('Hora de Finalización', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text('Hora de Finalización *', style: TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
-                  TextFormField(controller: horaFinCtrl,
-                      decoration: const InputDecoration(border: OutlineInputBorder())),
+                  GestureDetector(
+                    onTap: () async {
+                      final time = await showTimePicker(context: ctx2, initialTime: const TimeOfDay(hour: 9, minute: 0));
+                      if (time != null) {
+                        horaFinCtrl.text = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+                        setSt(() {});
+                      }
+                    },
+                    child: TextFormField(
+                      controller: horaFinCtrl,
+                      readOnly: true,
+                      decoration: const InputDecoration(border: OutlineInputBorder(), suffixIcon: Icon(Icons.schedule)),
+                      validator: (v) => v!.isEmpty ? 'Requerida' : null,
+                    ),
+                  ),
                 ])),
               ]),
               const SizedBox(height: 14),
@@ -239,6 +330,13 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Costo estimado (Q)', prefixText: 'Q ', border: OutlineInputBorder()),
+                validator: (v) {
+                  if (v!.isEmpty) return null;
+                  final cost = double.tryParse(v);
+                  if (cost == null) return 'Ingrese un número válido';
+                  if (cost < 0) return 'Costo no puede ser negativo';
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -251,13 +349,27 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                   onPressed: () async {
                     if (!formKey.currentState!.validate()) return;
                     try {
+                      double? duracionHoras;
+                      if (horaInicioCtrl.text.isNotEmpty && horaFinCtrl.text.isNotEmpty) {
+                        final inicio = horaInicioCtrl.text.split(':');
+                        final fin = horaFinCtrl.text.split(':');
+                        if (inicio.length == 2 && fin.length == 2) {
+                          final minInicio = int.parse(inicio[0]) * 60 + int.parse(inicio[1]);
+                          final minFin = int.parse(fin[0]) * 60 + int.parse(fin[1]);
+                          duracionHoras = (minFin - minInicio) / 60.0;
+                          if (duracionHoras < 0) duracionHoras += 24;
+                        }
+                      }
                       await ApiService.post('/mantenimientos', {
                         'tipo_mantenimiento': tipo,
-                        'descripcion': '[$componente] ${descCtrl.text}',
+                        'descripcion': descCtrl.text,
                         'fecha_realizacion': fechaCtrl.text,
-                        'costo': double.tryParse(costoCtrl.text) ?? 0,
+                        'costo': double.tryParse(costoCtrl.text),
                         'observaciones': materialesCtrl.text,
                         'id_usuario': AuthService.usuario!.idUsuario,
+                        'id_proveedor': idProveedorSeleccionado,
+                        'componente': componente,
+                        'duracion_horas': duracionHoras,
                       });
                       if (ctx.mounted) Navigator.pop(ctx);
                       _cargar();

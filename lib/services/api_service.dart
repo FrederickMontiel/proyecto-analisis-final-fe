@@ -35,6 +35,14 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  static Future<dynamic> delete(String endpoint) async {
+    final response = await http.delete(
+      Uri.parse('${AppConstants.apiUrl}$endpoint'),
+      headers: _headers,
+    );
+    return _handleResponse(response);
+  }
+
   static dynamic _handleResponse(http.Response response) {
     if (response.statusCode == 401) {
       AuthService.cerrarSesion();

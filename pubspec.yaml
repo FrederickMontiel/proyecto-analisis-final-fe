@@ -57,8 +57,8 @@ dependencies:
   csv: ^6.0.0
   universal_html: ^2.2.4
 
-  # Image picker para cámara/galería
-  image_picker: ^1.0.0
+  # File picker con soporte web
+  file_picker: ^6.0.0
 
 dev_dependencies:
   flutter_test:

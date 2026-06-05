@@ -116,10 +116,25 @@ class _PagosScreenState extends State<PagosScreen> {
               },
             ),
             const SizedBox(height: 12),
-            TextFormField(
-              controller: periodoCtrl,
-              decoration: const InputDecoration(labelText: 'Período (YYYY-MM)', border: OutlineInputBorder()),
-              validator: (v) => v!.isEmpty ? 'Requerido' : null,
+            GestureDetector(
+              onTap: () async {
+                final d = await showDatePicker(
+                  context: ctx2,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2024),
+                  lastDate: DateTime.now(),
+                );
+                if (d != null) {
+                  periodoCtrl.text = '${d.year}-${d.month.toString().padLeft(2, '0')}';
+                  setSt(() {});
+                }
+              },
+              child: TextFormField(
+                controller: periodoCtrl,
+                readOnly: true,
+                decoration: const InputDecoration(labelText: 'Período *', suffixIcon: Icon(Icons.calendar_today), border: OutlineInputBorder()),
+                validator: (v) => v!.isEmpty ? 'Seleccione período' : null,
+              ),
             ),
             const SizedBox(height: 12),
             if (widget.hogar == null)

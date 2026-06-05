@@ -13,6 +13,7 @@ import '../nivel_agua/nivel_agua_screen.dart';
 import '../anuncios/anuncios_screen.dart';
 import '../sectores/gestionar_sectores_screen.dart';
 import '../calendario/calendario_screen.dart';
+import '../proveedores/proveedores_screen.dart';
 
 class DashboardPresidente extends StatefulWidget {
   const DashboardPresidente({super.key});
@@ -154,6 +155,7 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
                   ('Anuncios', Icons.campaign, const Color(0xFF0DCAF0), () => _ir(const AnunciosScreen())),
                   ('Reportes Financieros', Icons.bar_chart, const Color(0xFFFFC107), () => _ir(const TransparenciaScreen())),
                   ('Usuarios', Icons.people, const Color(0xFF6C757D), () => _ir(const UsuariosScreen())),
+                  ('Proveedores', Icons.business, const Color(0xFF20C997), () => _ir(const ProveedoresScreen())),
                   ('Notificaciones', Icons.notifications, const Color(0xFF6F42C1), () => _ir(const NotificacionesScreen())),
                   ('Parámetros', Icons.settings, const Color(0xFF0D6EFD), () => _ir(const ParametrosScreen())),
                   ('Auditoría', Icons.security, const Color(0xFFDC3545), () => _ir(const AuditoriaScreen())),

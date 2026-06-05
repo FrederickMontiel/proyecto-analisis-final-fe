@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../config/theme.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
@@ -158,7 +159,6 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
     String tipo = 'Fuga';
     String urgencia = 'Media';
     String? fotoUrl;
-    File? fotoLocal;
     final formKey = GlobalKey<FormState>();
     showModalBottomSheet(
       context: context,
@@ -210,11 +210,20 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
                 ]),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final picker = ImagePicker();
-                    final foto = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
-                    if (foto != null) {
-                      fotoLocal = File(foto.path);
-                      final url = await FileService.uploadImage(fotoLocal!);
+                    final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
+                    if (result != null && result.files.isNotEmpty) {
+                      final file = result.files.first;
+                      dynamic uploadData;
+                      String? fileName;
+                      if (kIsWeb && file.bytes != null) {
+                        uploadData = file.bytes!;
+                        fileName = file.name;
+                      } else if (!kIsWeb && file.path != null) {
+                        uploadData = File(file.path!);
+                      } else {
+                        return;
+                      }
+                      final url = await FileService.uploadImage(uploadData, fileName: fileName);
                       if (url != null) {
                         setSt(() { fotoUrl = url; });
                         if (ctx2.mounted) {
@@ -232,7 +241,7 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
                     }
                   },
                   icon: const Icon(Icons.camera_alt, size: 18),
-                  label: const Text('Capturar'),
+                  label: const Text('Seleccionar Foto'),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8)),
                 ),
               ]),
