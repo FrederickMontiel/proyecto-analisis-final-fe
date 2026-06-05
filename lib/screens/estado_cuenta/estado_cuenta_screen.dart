@@ -23,8 +23,11 @@ class _EstadoCuentaScreenState extends State<EstadoCuentaScreen> {
   Future<void> _cargar() async {
     setState(() { _cargando = true; });
     try {
+      final usuario = AuthService.usuario;
+      if (usuario == null) throw Exception('No hay sesión activa');
+      final idHogar = usuario.idUsuario;
       final pagos = await ApiService.get('/pagos') as List;
-      final mios = pagos.toList(); // todos los pagos disponibles
+      final mios = pagos.where((p) => p['id_hogar'] == idHogar).toList();
       double total = 0;
       for (final p in mios) { total += double.tryParse(p['monto'].toString()) ?? 0; }
       String ult = '—';

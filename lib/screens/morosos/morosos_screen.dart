@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:universal_html/html.dart' as html;
 import '../../config/theme.dart';
 import '../../services/api_service.dart';
 import '../pagos/pagos_screen.dart';
@@ -10,16 +12,8 @@ class MorososScreen extends StatefulWidget {
 }
 
 class _MorososScreenState extends State<MorososScreen> {
-  List<dynamic> _pagos = [];
+  List<dynamic> _morosos = [];
   bool _cargando = true;
-
-  // Morosos simulados basados en datos del mockup hasta que el backend tenga endpoint específico
-  final List<Map<String, dynamic>> _morososDemo = [
-    {'numero': '#045', 'nombre': 'Sandra Pérez', 'sector': 'Sector 2', 'direccion': 'Calle Principal', 'meses': 4, 'deuda': 200.0, 'ultimoPago': '15 Nov 2025', 'telefono': '5512-3456'},
-    {'numero': '#072', 'nombre': 'Miguel Torres', 'sector': 'Zona 8', 'direccion': 'Sector 2', 'meses': 5, 'deuda': 250.0, 'ultimoPago': '20 Oct 2025', 'telefono': '5523-4567'},
-    {'numero': '#108', 'nombre': 'Elena Ramírez', 'sector': 'Zona Sur', 'direccion': 'Sector 3', 'meses': 3, 'deuda': 150.0, 'ultimoPago': '30 Dic 2025', 'telefono': '5534-5678'},
-    {'numero': '#012', 'nombre': 'Carlos Mendoza', 'sector': 'Zona Norte', 'direccion': 'Sector 1', 'meses': 2, 'deuda': 100.0, 'ultimoPago': '15 Ene 2026', 'telefono': '5545-6789'},
-  ];
 
   @override
   void initState() { super.initState(); _cargar(); }
@@ -27,7 +21,8 @@ class _MorososScreenState extends State<MorososScreen> {
   Future<void> _cargar() async {
     setState(() { _cargando = true; });
     try {
-      await ApiService.get('/pagos');
+      final m = await ApiService.get('/morosos');
+      setState(() { _morosos = (m as List).cast<dynamic>(); });
     } catch (_) {}
     setState(() { _cargando = false; });
   }
@@ -44,10 +39,10 @@ class _MorososScreenState extends State<MorososScreen> {
     return Colors.orange.shade300;
   }
 
-  double get _deudaTotal => _morososDemo.fold(0, (s, m) => s + (m['deuda'] as double));
-  int get _criticos => _morososDemo.where((m) => (m['meses'] as int) >= 3).length;
-  int get _altos => _morososDemo.where((m) => (m['meses'] as int) == 2).length;
-  int get _medios => _morososDemo.where((m) => (m['meses'] as int) == 1).length;
+  double get _deudaTotal => _morosos.fold(0, (s, m) => s + (m['deuda'] as num).toDouble());
+  int get _criticos => _morosos.where((m) => (m['meses'] as int) >= 3).length;
+  int get _altos => _morosos.where((m) => (m['meses'] as int) == 2).length;
+  int get _medios => _morosos.where((m) => (m['meses'] as int) == 1).length;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +73,7 @@ class _MorososScreenState extends State<MorososScreen> {
                       child: Icon(Icons.warning, color: Colors.white, size: 28)),
                   const SizedBox(width: 14),
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text('${_morososDemo.length} Hogares en Mora',
+                    Text('${_morosos.length} Hogares en Mora',
                         style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                     Text('Deuda Total: Q ${_deudaTotal.toStringAsFixed(2)}',
                         style: const TextStyle(color: Colors.white70, fontSize: 13)),
@@ -112,7 +107,7 @@ class _MorososScreenState extends State<MorososScreen> {
                 padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Text('Nivel Crítico (3+ meses)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFDC3545))),
               ),
-              ..._morososDemo.map((m) => _cardMoroso(m)),
+              ..._morosos.map((m) => _cardMoroso(m)),
               // Acciones masivas
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -132,7 +127,7 @@ class _MorososScreenState extends State<MorososScreen> {
                     )),
                     const SizedBox(width: 8),
                     Expanded(child: OutlinedButton.icon(
-                      onPressed: () {},
+                      onPressed: _exportarCSV,
                       icon: const Icon(Icons.download, size: 16),
                       label: const Text('Exportar', style: TextStyle(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
@@ -164,8 +159,11 @@ class _MorososScreenState extends State<MorososScreen> {
 
   Widget _cardMoroso(Map<String, dynamic> m) {
     final meses = m['meses'] as int;
-    final nivel = _nivelMorosidad(meses);
+    final nivel = m['nivel'] ?? _nivelMorosidad(meses);
     final color = _colorNivel(meses);
+    final hogarMap = Map<String, dynamic>.from(m);
+    hogarMap['id_hogar'] ??= m['id_hogar'];
+    hogarMap['numero'] ??= m['numero'];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Container(
@@ -187,20 +185,20 @@ class _MorososScreenState extends State<MorososScreen> {
             ),
           ]),
           const SizedBox(height: 4),
-          Text('${m['sector']} — ${m['direccion']}', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+          Text(m['correo'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 13)),
           const SizedBox(height: 8),
           Row(children: [
             _datoChip('$meses meses en mora', Icons.calendar_today, color),
             const SizedBox(width: 8),
-            _datoChip('Q ${(m['deuda'] as double).toStringAsFixed(2)}', Icons.attach_money, AppTheme.error),
+            _datoChip('Q ${(m['deuda'] as num).toStringAsFixed(2)}', Icons.attach_money, AppTheme.error),
           ]),
           const SizedBox(height: 4),
           Text('Último pago: ${m['ultimoPago']}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-          Text('Tel: ${m['telefono']}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          if (m['telefono'] != null) Text('Tel: ${m['telefono']}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
           const SizedBox(height: 10),
           Row(children: [
             Expanded(child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PagosScreen())),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PagosScreen(hogar: hogarMap))),
               icon: const Icon(Icons.payment, size: 16, color: Colors.white),
               label: const Text('Registrar Pago', style: TextStyle(color: Colors.white, fontSize: 12)),
               style: ElevatedButton.styleFrom(
@@ -211,7 +209,7 @@ class _MorososScreenState extends State<MorososScreen> {
             )),
             const SizedBox(width: 8),
             OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: m['telefono'] != null ? () => _hacerLlamada(m['telefono']) : null,
               icon: const Icon(Icons.phone, size: 16),
               label: const Text('Llamar', style: TextStyle(fontSize: 12)),
               style: OutlinedButton.styleFrom(
@@ -225,6 +223,38 @@ class _MorososScreenState extends State<MorososScreen> {
         ]),
       ),
     );
+  }
+
+  void _exportarCSV() {
+    List<List<String>> csvData = [
+      ['Hogar', 'Nombre', 'Correo', 'Teléfono', 'Meses en Mora', 'Deuda (Q)', 'Último Pago'],
+    ];
+    for (final m in _morosos) {
+      csvData.add([
+        m['numero'].toString(),
+        m['nombre'].toString(),
+        m['correo'] ?? '',
+        m['telefono'] ?? '',
+        m['meses'].toString(),
+        (m['deuda'] as num).toStringAsFixed(2),
+        m['ultimoPago'].toString(),
+      ]);
+    }
+    String csv = csvData.map((row) => row.map((cell) => '"${cell.replaceAll('"', '""')}"').join(',')).join('\n');
+    final bytes = csv.codeUnits;
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final link = html.AnchorElement(href: url)
+      ..setAttribute('download', 'morosos_${DateTime.now().toIso8601String().substring(0, 10)}.csv')
+      ..click();
+    html.Url.revokeObjectUrl(url);
+  }
+
+  Future<void> _hacerLlamada(String telefono) async {
+    final uri = Uri.parse('tel:$telefono');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 
   Widget _datoChip(String texto, IconData icono, Color color) {

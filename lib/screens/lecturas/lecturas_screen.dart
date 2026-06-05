@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../config/theme.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/file_service.dart';
 
 class LecturasScreen extends StatefulWidget {
   const LecturasScreen({super.key});
@@ -82,6 +85,8 @@ class _LecturasScreenState extends State<LecturasScreen> {
     final anteriorCtrl = TextEditingController();
     final obsCtrl = TextEditingController();
     String estadoContador = 'Normal';
+    String? fotoUrl;
+    File? fotoLocal;
     final formKey = GlobalKey<FormState>();
     showModalBottomSheet(
       context: context,
@@ -132,6 +137,30 @@ class _LecturasScreenState extends State<LecturasScreen> {
               controller: obsCtrl,
               decoration: const InputDecoration(labelText: 'Observaciones (opcional)', border: OutlineInputBorder()),
             ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+              child: Row(children: [
+                Icon(Icons.image, color: fotoUrl != null ? AppTheme.exito : Colors.grey),
+                const SizedBox(width: 10),
+                Expanded(child: Text(fotoUrl != null ? 'Foto del contador' : 'Sin foto', style: const TextStyle(fontSize: 14))),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final picker = ImagePicker();
+                    final foto = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+                    if (foto != null) {
+                      fotoLocal = File(foto.path);
+                      final url = await FileService.uploadImage(fotoLocal!);
+                      setSt(() { fotoUrl = url; });
+                    }
+                  },
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: const Text('Capturar'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8)),
+                ),
+              ]),
+            ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -162,6 +191,7 @@ class _LecturasScreenState extends State<LecturasScreen> {
                       'fecha_lectura': DateTime.now().toIso8601String(),
                       'estado_contador': estadoContador,
                       'observaciones': obsCtrl.text,
+                      'foto_contador': fotoUrl,
                       'origen_lectura': 'Manual',
                       'id_usuario_lector': AuthService.usuario!.idUsuario,
                       'unidad_medida': 'Metros Cúbicos',

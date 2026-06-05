@@ -3,7 +3,7 @@ WORKDIR /app
 COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get
 COPY . .
-RUN flutter build web --release
+RUN flutter build web --release --dart-define=API_URL=http://backend:3000/api
 
 FROM nginx:alpine
 COPY --from=builder /app/build/web /usr/share/nginx/html

@@ -149,6 +149,27 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
                 }
               }
             },
+          )
+        else
+          ListTile(
+            leading: const Icon(Icons.person_add, color: AppTheme.exito),
+            title: const Text('Activar usuario'),
+            onTap: () async {
+              Navigator.pop(context);
+              try {
+                await ApiService.put('/usuarios/${u['id_usuario']}/activar', {});
+                _cargar();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Usuario activado'), backgroundColor: AppTheme.exito));
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.error));
+                }
+              }
+            },
           ),
         ListTile(
           leading: const Icon(Icons.close),

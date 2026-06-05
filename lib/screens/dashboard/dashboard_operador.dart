@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/responsive.dart';
 import '../../config/theme.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
@@ -92,37 +93,60 @@ class _DashboardOperadorState extends State<DashboardOperador> {
                       begin: Alignment.topLeft, end: Alignment.bottomRight,
                     ),
                   ),
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    ResponsiveHelper.getPadding(context),
+                    16,
+                    ResponsiveHelper.getPadding(context),
+                    20,
+                  ),
                   child: Row(children: [
                     const CircleAvatar(radius: 26, backgroundColor: Colors.white24,
                         child: Icon(Icons.engineering, color: Colors.white, size: 28)),
                     const SizedBox(width: 14),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(usuario?.nombre ?? '', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      const Text('Turno: Matutino', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      Text(usuario?.nombre ?? '',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ResponsiveHelper.getFontSize(context, 18),
+                            fontWeight: FontWeight.bold,
+                          )),
+                      Text('Turno: Matutino',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: ResponsiveHelper.getFontSize(context, 13),
+                          )),
                     ])),
                   ]),
                 ),
                 // Water level card
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white, borderRadius: BorderRadius.circular(14),
                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2))],
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
                         const Icon(Icons.water_drop, color: Color(0xFF0D6EFD), size: 20),
                         const SizedBox(width: 6),
-                        const Text('Nivel de Agua Actual', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                        Text('Nivel de Agua Actual',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: ResponsiveHelper.getFontSize(context, 15),
+                            )),
                         const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
                             color: nivelColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-                          child: Text(nivelLabel, style: TextStyle(color: nivelColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                          child: Text(nivelLabel,
+                              style: TextStyle(
+                                color: nivelColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: ResponsiveHelper.getFontSize(context, 12),
+                              )),
                         ),
                       ]),
                       const SizedBox(height: 10),
@@ -133,14 +157,25 @@ class _DashboardOperadorState extends State<DashboardOperador> {
                       ),
                       const SizedBox(height: 8),
                       Row(children: [
-                        Text('${p.toStringAsFixed(0)}%', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: nivelColor)),
+                        Text('${p.toStringAsFixed(0)}%',
+                            style: TextStyle(
+                              fontSize: ResponsiveHelper.getFontSize(context, 20),
+                              fontWeight: FontWeight.bold,
+                              color: nivelColor,
+                            )),
                         const SizedBox(width: 8),
                         Text('${_nivelActual?['nivel_litros'] ?? 0} litros',
-                            style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: ResponsiveHelper.getFontSize(context, 14),
+                            )),
                       ]),
                       if (_ultimaActualizacion.isNotEmpty)
                         Text('Última actualización: $_ultimaActualizacion',
-                            style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: ResponsiveHelper.getFontSize(context, 12),
+                            )),
                       const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
@@ -226,39 +261,115 @@ class _DashboardOperadorState extends State<DashboardOperador> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-                  child: Text('Acciones', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    ResponsiveHelper.getPadding(context),
+                    4,
+                    ResponsiveHelper.getPadding(context),
+                    8,
+                  ),
+                  child: Text('Acciones',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getFontSize(context, 18),
+                        fontWeight: FontWeight.bold,
+                      )),
                 ),
-                _accion('Lecturas de Contadores', Icons.speed, const Color(0xFF0D6EFD), () => _ir(const LecturasScreen())),
-                _accion('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const CalendarioScreen())),
-                _accion('Registrar Mantenimiento', Icons.build, const Color(0xFF6F42C1), () => _ir(const MantenimientosScreen())),
-                _accion('Historial de Incidencias', Icons.history, const Color(0xFFFD7E14), () => _ir(const IncidenciasScreen())),
-                _accion('Análisis de Consumo', Icons.analytics, const Color(0xFF0DCAF0), () => _ir(const AnalisisConsumoScreen())),
-                _accion('Notificaciones', Icons.notifications, const Color(0xFF6C757D), () => _ir(const NotificacionesScreen())),
+                _accionesGrid([
+                  ('Lecturas de Contadores', Icons.speed, const Color(0xFF0D6EFD), () => _ir(const LecturasScreen())),
+                  ('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const CalendarioScreen())),
+                  ('Registrar Mantenimiento', Icons.build, const Color(0xFF6F42C1), () => _ir(const MantenimientosScreen())),
+                  ('Historial de Incidencias', Icons.history, const Color(0xFFFD7E14), () => _ir(const IncidenciasScreen())),
+                  ('Análisis de Consumo', Icons.analytics, const Color(0xFF0DCAF0), () => _ir(const AnalisisConsumoScreen())),
+                  ('Notificaciones', Icons.notifications, const Color(0xFF6C757D), () => _ir(const NotificacionesScreen())),
+                ]),
                 const SizedBox(height: 20),
               ]),
             ),
     );
   }
 
-  Widget _accion(String titulo, IconData icono, Color color, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Material(
-        color: color, borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap, borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(children: [
-              Icon(icono, color: Colors.white, size: 22),
-              const SizedBox(width: 12),
-              Text(titulo, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: Colors.white70),
-            ]),
+  Widget _accionesGrid(List<(String, IconData, Color, VoidCallback)> acciones) {
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final perRow = ResponsiveHelper.getActionsPerRow(context);
+    final padding = ResponsiveHelper.getPadding(context);
+    final spacing = ResponsiveHelper.getSpacing(context);
+
+    if (isMobile) {
+      return Column(
+        children: acciones
+            .map((a) => _accionItem(a.$1, a.$2, a.$3, a.$4, fullWidth: true))
+            .toList(),
+      );
+    } else {
+      final rows = <List<(String, IconData, Color, VoidCallback)>>[];
+      for (int i = 0; i < acciones.length; i += perRow) {
+        rows.add(acciones.sublist(i, i + perRow > acciones.length ? acciones.length : i + perRow));
+      }
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: padding),
+        child: Column(
+          children: rows
+              .map((row) => Padding(
+                    padding: EdgeInsets.only(bottom: spacing),
+                    child: Row(
+                      children: [
+                        for (int i = 0; i < perRow; i++)
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(right: i < perRow - 1 ? spacing : 0),
+                              child: i < row.length
+                                  ? _accionItem(row[i].$1, row[i].$2, row[i].$3, row[i].$4, fullWidth: false)
+                                  : const SizedBox(),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ))
+              .toList(),
+        ),
+      );
+    }
+  }
+
+  Widget _accionItem(String titulo, IconData icono, Color color, VoidCallback onTap, {required bool fullWidth}) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveHelper.getPadding(context) / 2,
+            vertical: 14,
           ),
+          child: fullWidth
+              ? Row(children: [
+                  Icon(icono, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Text(titulo,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: ResponsiveHelper.getFontSize(context, 16),
+                        fontWeight: FontWeight.w600,
+                      )),
+                  const Spacer(),
+                  const Icon(Icons.chevron_right, color: Colors.white70),
+                ])
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icono, color: Colors.white, size: 28),
+                    const SizedBox(height: 8),
+                    Text(titulo,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: ResponsiveHelper.getFontSize(context, 12),
+                          fontWeight: FontWeight.w600,
+                        )),
+                  ],
+                ),
         ),
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/responsive.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
@@ -88,23 +89,41 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
                       begin: Alignment.topLeft, end: Alignment.bottomRight,
                     ),
                   ),
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    ResponsiveHelper.getPadding(context),
+                    16,
+                    ResponsiveHelper.getPadding(context),
+                    20,
+                  ),
                   child: Row(children: [
                     const CircleAvatar(radius: 26, backgroundColor: Colors.white24,
                         child: Icon(Icons.admin_panel_settings, color: Colors.white, size: 28)),
                     const SizedBox(width: 14),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(usuario?.nombre ?? '', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      const Text('Comité del Agua San Miguel', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      Text(usuario?.nombre ?? '',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ResponsiveHelper.getFontSize(context, 18),
+                            fontWeight: FontWeight.bold,
+                          )),
+                      Text('Comité del Agua San Miguel',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: ResponsiveHelper.getFontSize(context, 13),
+                          )),
                     ])),
                   ]),
                 ),
                 // Stats grid
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
                   child: GridView.count(
-                    crossAxisCount: 2, crossAxisSpacing: 10, mainAxisSpacing: 10,
-                    childAspectRatio: 2.0, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: ResponsiveHelper.getGridColumns(context).toInt(),
+                    crossAxisSpacing: ResponsiveHelper.getSpacing(context),
+                    mainAxisSpacing: ResponsiveHelper.getSpacing(context),
+                    childAspectRatio: 2.0,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
                       _statCard('$_hogares', 'Hogares', Icons.home, const Color(0xFF0D6EFD)),
                       _statCard('$_sectores', 'Sectores', Icons.map, const Color(0xFF198754)),
@@ -116,19 +135,30 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
                 // Water level card
                 _nivelAguaCard(p, nivelColor, nivelLabel),
                 // Acciones
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-                  child: Text('Gestión', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    ResponsiveHelper.getPadding(context),
+                    4,
+                    ResponsiveHelper.getPadding(context),
+                    8,
+                  ),
+                  child: Text('Gestión',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getFontSize(context, 18),
+                        fontWeight: FontWeight.bold,
+                      )),
                 ),
-                _accion('Sectores', Icons.location_on, const Color(0xFF198754), () => _ir(const GestionarSectoresScreen())),
-                _accion('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const CalendarioScreen())),
-                _accion('Anuncios', Icons.campaign, const Color(0xFF0DCAF0), () => _ir(const AnunciosScreen())),
-                _accion('Reportes Financieros', Icons.bar_chart, const Color(0xFFFFC107), () => _ir(const TransparenciaScreen())),
-                _accion('Usuarios', Icons.people, const Color(0xFF6C757D), () => _ir(const UsuariosScreen())),
-                _accion('Notificaciones', Icons.notifications, const Color(0xFF6F42C1), () => _ir(const NotificacionesScreen())),
-                _accion('Parámetros', Icons.settings, const Color(0xFF0D6EFD), () => _ir(const ParametrosScreen())),
-                _accion('Auditoría', Icons.security, const Color(0xFFDC3545), () => _ir(const AuditoriaScreen())),
-                _accion('Análisis Consumo', Icons.analytics, const Color(0xFF6F42C1), () => _ir(const AnalisisConsumoScreen())),
+                _accionesGrid([
+                  ('Sectores', Icons.location_on, const Color(0xFF198754), () => _ir(const GestionarSectoresScreen())),
+                  ('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const CalendarioScreen())),
+                  ('Anuncios', Icons.campaign, const Color(0xFF0DCAF0), () => _ir(const AnunciosScreen())),
+                  ('Reportes Financieros', Icons.bar_chart, const Color(0xFFFFC107), () => _ir(const TransparenciaScreen())),
+                  ('Usuarios', Icons.people, const Color(0xFF6C757D), () => _ir(const UsuariosScreen())),
+                  ('Notificaciones', Icons.notifications, const Color(0xFF6F42C1), () => _ir(const NotificacionesScreen())),
+                  ('Parámetros', Icons.settings, const Color(0xFF0D6EFD), () => _ir(const ParametrosScreen())),
+                  ('Auditoría', Icons.security, const Color(0xFFDC3545), () => _ir(const AuditoriaScreen())),
+                  ('Análisis Consumo', Icons.analytics, const Color(0xFF6F42C1), () => _ir(const AnalisisConsumoScreen())),
+                ]),
                 const SizedBox(height: 20),
               ]),
             ),
@@ -138,17 +168,30 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
   Widget _statCard(String valor, String label, IconData icono, Color color) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white, borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2))],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(children: [
-        CircleAvatar(radius: 20, backgroundColor: color.withValues(alpha: 0.12),
-            child: Icon(icono, color: color, size: 20)),
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: color.withValues(alpha: 0.12),
+          child: Icon(icono, color: color, size: 20),
+        ),
         const SizedBox(width: 10),
         Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text(valor, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-          Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(valor,
+              style: TextStyle(
+                fontSize: ResponsiveHelper.getFontSize(context, 22),
+                fontWeight: FontWeight.bold,
+                color: color,
+              )),
+          Text(label,
+              style: TextStyle(
+                fontSize: ResponsiveHelper.getFontSize(context, 12),
+                color: Colors.grey,
+              )),
         ]),
       ]),
     );
@@ -158,36 +201,65 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
     return GestureDetector(
       onTap: () => _ir(const NivelAguaScreen()),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: ResponsiveHelper.getPadding(context),
+          vertical: 4,
+        ),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(14),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2))],
           ),
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               const Icon(Icons.water_drop, color: Color(0xFF0D6EFD), size: 20),
               const SizedBox(width: 6),
-              const Text('Nivel de Agua', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+              Text('Nivel de Agua',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: ResponsiveHelper.getFontSize(context, 15),
+                  )),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-                child: Text(label, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(label,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.bold,
+                      fontSize: ResponsiveHelper.getFontSize(context, 12),
+                    )),
               ),
             ]),
             const SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(value: p / 100, backgroundColor: Colors.grey.shade200, color: color, minHeight: 18),
+              child: LinearProgressIndicator(
+                value: p / 100,
+                backgroundColor: Colors.grey.shade200,
+                color: color,
+                minHeight: 18,
+              ),
             ),
             const SizedBox(height: 6),
             Row(children: [
-              Text('${p.toStringAsFixed(0)}%', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+              Text('${p.toStringAsFixed(0)}%',
+                  style: TextStyle(
+                    fontSize: ResponsiveHelper.getFontSize(context, 16),
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  )),
               const Spacer(),
               Text('${_nivelActual?['nivel_litros'] ?? 0} litros',
-                  style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: ResponsiveHelper.getFontSize(context, 14),
+                  )),
               const SizedBox(width: 4),
               const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
             ]),
@@ -197,25 +269,88 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
     );
   }
 
-  Widget _accion(String titulo, IconData icono, Color color, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Material(
-        color: color,
+  Widget _accionesGrid(List<(String, IconData, Color, VoidCallback)> acciones) {
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final perRow = ResponsiveHelper.getActionsPerRow(context);
+    final padding = ResponsiveHelper.getPadding(context);
+    final spacing = ResponsiveHelper.getSpacing(context);
+
+    if (isMobile) {
+      return Column(
+        children: acciones
+            .map((a) => _accionItem(a.$1, a.$2, a.$3, a.$4, fullWidth: true))
+            .toList(),
+      );
+    } else {
+      final rows = <List<(String, IconData, Color, VoidCallback)>>[];
+      for (int i = 0; i < acciones.length; i += perRow) {
+        rows.add(acciones.sublist(i, i + perRow > acciones.length ? acciones.length : i + perRow));
+      }
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: padding),
+        child: Column(
+          children: rows
+              .map((row) => Padding(
+                    padding: EdgeInsets.only(bottom: spacing),
+                    child: Row(
+                      children: [
+                        for (int i = 0; i < perRow; i++)
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(right: i < perRow - 1 ? spacing : 0),
+                              child: i < row.length
+                                  ? _accionItem(row[i].$1, row[i].$2, row[i].$3, row[i].$4, fullWidth: false)
+                                  : const SizedBox(),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ))
+              .toList(),
+        ),
+      );
+    }
+  }
+
+  Widget _accionItem(String titulo, IconData icono, Color color, VoidCallback onTap, {required bool fullWidth}) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(children: [
-              Icon(icono, color: Colors.white, size: 22),
-              const SizedBox(width: 12),
-              Text(titulo, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: Colors.white70),
-            ]),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveHelper.getPadding(context) / 2,
+            vertical: 14,
           ),
+          child: fullWidth
+              ? Row(children: [
+                  Icon(icono, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Text(titulo,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: ResponsiveHelper.getFontSize(context, 16),
+                        fontWeight: FontWeight.w600,
+                      )),
+                  const Spacer(),
+                  const Icon(Icons.chevron_right, color: Colors.white70),
+                ])
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icono, color: Colors.white, size: 28),
+                    const SizedBox(height: 8),
+                    Text(titulo,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: ResponsiveHelper.getFontSize(context, 12),
+                          fontWeight: FontWeight.w600,
+                        )),
+                  ],
+                ),
         ),
       ),
     );

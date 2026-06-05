@@ -4,7 +4,8 @@ import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
 
 class PagosScreen extends StatefulWidget {
-  const PagosScreen({super.key});
+  final Map<String, dynamic>? hogar;
+  const PagosScreen({super.key, this.hogar});
   @override
   State<PagosScreen> createState() => _PagosScreenState();
 }
@@ -12,6 +13,7 @@ class PagosScreen extends StatefulWidget {
 class _PagosScreenState extends State<PagosScreen> {
   List<dynamic> _pagos = [];
   List<dynamic> _hogares = [];
+  List<dynamic> _morosos = [];
   bool _cargando = true;
 
   @override
@@ -21,13 +23,22 @@ class _PagosScreenState extends State<PagosScreen> {
     setState(() { _cargando = true; });
     try {
       final p = await ApiService.get('/pagos');
-      final h = await ApiService.get('/usuarios');
+      final u = await ApiService.get('/usuarios');
+      final m = await ApiService.get('/morosos');
       setState(() {
         _pagos = (p as List).reversed.toList();
-        _hogares = h as List;
+        _hogares = (u as List).where((u) => u['rol'] == 'Habitante').map((u) {
+          u['id_hogar'] = u['id_usuario'];
+          return u;
+        }).toList();
+        _morosos = m as List;
       });
     } catch (_) {}
     setState(() { _cargando = false; });
+  }
+
+  Map<String, dynamic>? _obtenerMoroso(int idHogar) {
+    return _morosos.firstWhere((m) => m['id_hogar'] == idHogar, orElse: () => null);
   }
 
   @override
@@ -80,7 +91,7 @@ class _PagosScreenState extends State<PagosScreen> {
         text: '${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}');
     final obsCtrl = TextEditingController();
     String metodo = 'Efectivo';
-    int? idHogar;
+    int? idHogar = widget.hogar?['id_hogar'] as int?;
     final formKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
@@ -111,6 +122,106 @@ class _PagosScreenState extends State<PagosScreen> {
               validator: (v) => v!.isEmpty ? 'Requerido' : null,
             ),
             const SizedBox(height: 12),
+            if (widget.hogar == null)
+              GestureDetector(
+                onTap: _hogares.isEmpty
+                    ? null
+                    : () async {
+                        final h = await showDialog<int>(
+                          context: ctx,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Seleccionar Hogar'),
+                            content: SizedBox(
+                              width: double.maxFinite,
+                              height: 300,
+                              child: ListView(
+                                children: _hogares
+                                    .where((h) => h['id_hogar'] != null)
+                                    .map((h) => ListTile(
+                                      title: Text(h['nombre'] ?? 'Sin nombre'),
+                                      subtitle: Text(h['correo'] ?? 'N/A'),
+                                      onTap: () => Navigator.pop(ctx, h['id_hogar'] as int),
+                                    ))
+                                    .toList(),
+                              ),
+                            ),
+                          ),
+                        );
+                        if (h != null) setSt(() { idHogar = h; });
+                      },
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Hogar',
+                    border: const OutlineInputBorder(),
+                    errorText: idHogar == null ? 'Seleccione un hogar' : null,
+                  ),
+                  child: Text(
+                    _hogares.isEmpty
+                        ? 'Cargando...'
+                        : _hogares.firstWhere((h) => h['id_hogar'] == idHogar, orElse: () => {})['nombre'] ?? 'Seleccionar hogar',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            if (widget.hogar == null && idHogar != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Builder(builder: (_) {
+                  final moroso = _obtenerMoroso(idHogar!);
+                  if (moroso == null) {
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        border: Border.all(color: Colors.green.shade200),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                        const SizedBox(width: 8),
+                        const Text('Hogar al día', style: TextStyle(fontSize: 13, color: Colors.green, fontWeight: FontWeight.w500)),
+                      ]),
+                    );
+                  }
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEBEE),
+                      border: Border.all(color: const Color(0xFFEF5350)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Row(children: [
+                        const Icon(Icons.warning, color: Color(0xFFC62828), size: 18),
+                        const SizedBox(width: 8),
+                        Text('${moroso['meses']} meses en mora',
+                          style: const TextStyle(fontSize: 13, color: Color(0xFFC62828), fontWeight: FontWeight.bold)),
+                      ]),
+                      const SizedBox(height: 6),
+                      Text('Deuda: Q ${(moroso['deuda'] as num).toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 14, color: Color(0xFFC62828), fontWeight: FontWeight.bold)),
+                    ]),
+                  );
+                }),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  border: Border.all(color: Colors.blue.shade200),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(children: [
+                  const Icon(Icons.info, color: Colors.blue, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(
+                    'Pago para: ${widget.hogar?['nombre'] ?? 'Hogar'} (${widget.hogar?['numero'] ?? '#N/A'})',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  )),
+                ]),
+              ),
+            const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: metodo,
               items: ['Efectivo', 'Transferencia', 'Depósito', 'Otro']
@@ -132,6 +243,11 @@ class _PagosScreenState extends State<PagosScreen> {
                 style: ElevatedButton.styleFrom(backgroundColor: AppTheme.exito, minimumSize: const Size(double.infinity, 52)),
                 onPressed: () async {
                   if (!formKey.currentState!.validate()) return;
+                  if (idHogar == null) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(content: Text('Seleccione un hogar'), backgroundColor: AppTheme.error));
+                    return;
+                  }
                   try {
                     final numero = 'PAGO-${DateTime.now().year}-${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}';
                     await ApiService.post('/pagos', {
@@ -142,7 +258,7 @@ class _PagosScreenState extends State<PagosScreen> {
                       'observaciones': obsCtrl.text,
                       'fecha_pago': DateTime.now().toIso8601String().substring(0, 10),
                       'id_usuario_registro': AuthService.usuario!.idUsuario,
-                      'id_hogar': 1,
+                      'id_hogar': idHogar,
                     });
                     if (ctx.mounted) Navigator.pop(ctx);
                     _cargar();

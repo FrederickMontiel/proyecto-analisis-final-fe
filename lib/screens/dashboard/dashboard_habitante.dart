@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/responsive.dart';
 import '../../services/auth_service.dart';
 import '../../services/api_service.dart';
 import '../auth/login_screen.dart';
@@ -82,33 +83,51 @@ class _DashboardHabitanteState extends State<DashboardHabitante> {
                       begin: Alignment.topLeft, end: Alignment.bottomRight,
                     ),
                   ),
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    ResponsiveHelper.getPadding(context),
+                    16,
+                    ResponsiveHelper.getPadding(context),
+                    20,
+                  ),
                   child: Row(children: [
                     const CircleAvatar(radius: 26, backgroundColor: Colors.white24,
                         child: Icon(Icons.person, color: Colors.white, size: 28)),
                     const SizedBox(width: 14),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text('Hola, ${usuario?.nombre ?? ''}',
-                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      const Row(children: [
-                        Icon(Icons.location_on, color: Colors.white70, size: 14),
-                        SizedBox(width: 3),
-                        Text('Comunidad San Miguel', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: ResponsiveHelper.getFontSize(context, 18),
+                            fontWeight: FontWeight.bold,
+                          )),
+                      Row(children: [
+                        const Icon(Icons.location_on, color: Colors.white70, size: 14),
+                        const SizedBox(width: 3),
+                        Text('Comunidad San Miguel',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: ResponsiveHelper.getFontSize(context, 13),
+                            )),
                       ]),
                     ])),
                   ]),
                 ),
                 // Mi información
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white, borderRadius: BorderRadius.circular(14),
                       boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2))],
                     ),
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      const Text('Mi Información', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.grey)),
+                      Text('Mi Información',
+                          style: TextStyle(
+                            fontSize: ResponsiveHelper.getFontSize(context, 15),
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey,
+                          )),
                       const SizedBox(height: 12),
                       Row(children: [
                         Expanded(child: _infoTile(Icons.check_circle, 'Estado Pago', 'Al Día', const Color(0xFF198754))),
@@ -136,7 +155,7 @@ class _DashboardHabitanteState extends State<DashboardHabitante> {
                 ),
                 // Agua disponible
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getPadding(context)),
                   child: GestureDetector(
                     onTap: () => _ir(const NivelAguaScreen()),
                     child: Container(
@@ -144,17 +163,26 @@ class _DashboardHabitanteState extends State<DashboardHabitante> {
                         color: Colors.white, borderRadius: BorderRadius.circular(14),
                         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2))],
                       ),
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.all(ResponsiveHelper.getPadding(context)),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(children: [
                           const Icon(Icons.water_drop, color: Color(0xFF0D6EFD), size: 20),
                           const SizedBox(width: 6),
-                          const Text('Agua Disponible', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                          Text('Agua Disponible',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: ResponsiveHelper.getFontSize(context, 15),
+                              )),
                           const Spacer(),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(color: nivelColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-                            child: Text('Estado: $nivelLabel', style: TextStyle(color: nivelColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                            child: Text('Estado: $nivelLabel',
+                                style: TextStyle(
+                                  color: nivelColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: ResponsiveHelper.getFontSize(context, 11),
+                                )),
                           ),
                         ]),
                         const SizedBox(height: 10),
@@ -164,24 +192,44 @@ class _DashboardHabitanteState extends State<DashboardHabitante> {
                         ),
                         const SizedBox(height: 6),
                         Row(children: [
-                          Text('${p.toStringAsFixed(0)}%', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: nivelColor)),
+                          Text('${p.toStringAsFixed(0)}%',
+                              style: TextStyle(
+                                fontSize: ResponsiveHelper.getFontSize(context, 18),
+                                fontWeight: FontWeight.bold,
+                                color: nivelColor,
+                              )),
                           const SizedBox(width: 8),
-                          Text('${_nivelActual?['nivel_litros'] ?? 0} litros', style: const TextStyle(color: Colors.grey)),
+                          Text('${_nivelActual?['nivel_litros'] ?? 0} litros',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: ResponsiveHelper.getFontSize(context, 14),
+                              )),
                         ]),
                       ]),
                     ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: Text('Acciones Rápidas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    ResponsiveHelper.getPadding(context),
+                    0,
+                    ResponsiveHelper.getPadding(context),
+                    8,
+                  ),
+                  child: Text('Acciones Rápidas',
+                      style: TextStyle(
+                        fontSize: ResponsiveHelper.getFontSize(context, 18),
+                        fontWeight: FontWeight.bold,
+                      )),
                 ),
-                _accion('Ver Calendario de Distribución', Icons.calendar_month, const Color(0xFF198754), () => _ir(const CalendarioScreen())),
-                _accion('Estado de Cuenta', Icons.account_balance_wallet, const Color(0xFF0D6EFD), () => _ir(const EstadoCuentaScreen())),
-                _accionConBadge('Anuncios', Icons.announcement, const Color(0xFF6F42C1), _anunciosNuevos, () => _ir(const AnunciosScreen())),
-                _accion('Reportar Problema', Icons.report_problem, const Color(0xFFFD7E14), () => _ir(const IncidenciasScreen())),
-                _accion('Notificaciones', Icons.notifications, const Color(0xFF6C757D), () => _ir(const NotificacionesScreen())),
+                _accionesGrid([
+                  ('Ver Calendario de Distribución', Icons.calendar_month, const Color(0xFF198754), () => _ir(const CalendarioScreen())),
+                  ('Estado de Cuenta', Icons.account_balance_wallet, const Color(0xFF0D6EFD), () => _ir(const EstadoCuentaScreen())),
+                  ('Anuncios', Icons.announcement, const Color(0xFF6F42C1), () => _ir(const AnunciosScreen())),
+                  ('Reportar Problema', Icons.report_problem, const Color(0xFFFD7E14), () => _ir(const IncidenciasScreen())),
+                  ('Notificaciones', Icons.notifications, const Color(0xFF6C757D), () => _ir(const NotificacionesScreen())),
+                ]),
                 const SizedBox(height: 20),
               ]),
             ),
@@ -195,59 +243,103 @@ class _DashboardHabitanteState extends State<DashboardHabitante> {
       child: Column(children: [
         Icon(icono, color: color, size: 20),
         const SizedBox(height: 4),
-        Text(valor, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-        Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text(valor,
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getFontSize(context, 16),
+              fontWeight: FontWeight.bold,
+              color: color,
+            )),
+        Text(label,
+            style: TextStyle(
+              fontSize: ResponsiveHelper.getFontSize(context, 11),
+              color: Colors.grey,
+            )),
       ]),
     );
   }
 
-  Widget _accion(String titulo, IconData icono, Color color, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Material(
-        color: color, borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap, borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(children: [
-              Icon(icono, color: Colors.white, size: 22),
-              const SizedBox(width: 12),
-              Text(titulo, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: Colors.white70),
-            ]),
-          ),
+  Widget _accionesGrid(List<(String, IconData, Color, VoidCallback)> acciones) {
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final perRow = ResponsiveHelper.getActionsPerRow(context);
+    final padding = ResponsiveHelper.getPadding(context);
+    final spacing = ResponsiveHelper.getSpacing(context);
+
+    if (isMobile) {
+      return Column(
+        children: acciones
+            .map((a) => _accionItem(a.$1, a.$2, a.$3, a.$4, fullWidth: true))
+            .toList(),
+      );
+    } else {
+      final rows = <List<(String, IconData, Color, VoidCallback)>>[];
+      for (int i = 0; i < acciones.length; i += perRow) {
+        rows.add(acciones.sublist(i, i + perRow > acciones.length ? acciones.length : i + perRow));
+      }
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: padding),
+        child: Column(
+          children: rows
+              .map((row) => Padding(
+                    padding: EdgeInsets.only(bottom: spacing),
+                    child: Row(
+                      children: [
+                        for (int i = 0; i < perRow; i++)
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(right: i < perRow - 1 ? spacing : 0),
+                              child: i < row.length
+                                  ? _accionItem(row[i].$1, row[i].$2, row[i].$3, row[i].$4, fullWidth: false)
+                                  : const SizedBox(),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ))
+              .toList(),
         ),
-      ),
-    );
+      );
+    }
   }
 
-  Widget _accionConBadge(String titulo, IconData icono, Color color, int badge, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Material(
-        color: color, borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: onTap, borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            child: Row(children: [
-              Icon(icono, color: Colors.white, size: 22),
-              const SizedBox(width: 12),
-              Text(titulo, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-              if (badge > 0) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                  child: Text('$badge nuevos', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
-                ),
-              ],
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: Colors.white70),
-            ]),
+  Widget _accionItem(String titulo, IconData icono, Color color, VoidCallback onTap, {required bool fullWidth}) {
+    return Material(
+      color: color,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: ResponsiveHelper.getPadding(context) / 2,
+            vertical: 14,
           ),
+          child: fullWidth
+              ? Row(children: [
+                  Icon(icono, color: Colors.white, size: 22),
+                  const SizedBox(width: 12),
+                  Text(titulo,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: ResponsiveHelper.getFontSize(context, 16),
+                        fontWeight: FontWeight.w600,
+                      )),
+                  const Spacer(),
+                  const Icon(Icons.chevron_right, color: Colors.white70),
+                ])
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icono, color: Colors.white, size: 28),
+                    const SizedBox(height: 8),
+                    Text(titulo,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: ResponsiveHelper.getFontSize(context, 12),
+                          fontWeight: FontWeight.w600,
+                        )),
+                  ],
+                ),
         ),
       ),
     );

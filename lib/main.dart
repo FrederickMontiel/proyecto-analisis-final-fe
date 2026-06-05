@@ -31,12 +31,17 @@ class SistemaAguaApp extends StatelessWidget {
       return const LoginScreen();
     }
     switch (AuthService.usuario!.rol) {
-      case 'Presidente': return const DashboardPresidente();
-      case 'Tesorero': return const DashboardTesorero();
-      case 'Operador': return const DashboardOperador();
-      default: return const DashboardHabitante();
+      case 'Presidente':
+        return const DashboardPresidente();
+      case 'Tesorero':
+        return const DashboardTesorero();
+      case 'Operador':
+        return const DashboardOperador();
+      default:
+        return const DashboardHabitante();
     }
   }
 }
+
 // Navegacion por rol correcta al inicio de sesion
 // Version 1.0.0 - Sistema Agua San Miguel - Comunidad San Miguel Guatemala

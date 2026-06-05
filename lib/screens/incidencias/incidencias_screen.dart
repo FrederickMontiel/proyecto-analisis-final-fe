@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../config/theme.dart';
 import '../../services/api_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/file_service.dart';
 
 class IncidenciasScreen extends StatefulWidget {
   const IncidenciasScreen({super.key});
@@ -20,7 +23,11 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
     setState(() { _cargando = true; });
     try {
       final data = await ApiService.get('/incidencias');
-      setState(() { _incidencias = (data as List).reversed.toList(); });
+      setState(() {
+        _incidencias = ((data as List).where((i) =>
+            i['estado'] != 'Resuelta' && i['estado'] != 'Cancelada').toList())
+            .reversed.toList();
+      });
     } catch (_) {}
     setState(() { _cargando = false; });
   }
@@ -112,7 +119,7 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
           Text('Tipo: ${inc['tipo_incidencia']} | $fecha', style: const TextStyle(fontSize: 12, color: Colors.grey)),
           if (puedeGestionar && estado != 'Resuelta' && estado != 'Cancelada') ...[
             const SizedBox(height: 8),
-            Row(children: [
+            Wrap(spacing: 8, children: [
               if (estado == 'Reportada') OutlinedButton(
                 onPressed: () => _cambiarEstado(inc['id_incidencia'], 'EnRevisión'),
                 child: const Text('En Revisión'),
@@ -121,14 +128,11 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
                 onPressed: () => _cambiarEstado(inc['id_incidencia'], 'EnAtención'),
                 child: const Text('Atender'),
               ),
-              if (estado == 'EnAtención') ...[
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () => _cambiarEstado(inc['id_incidencia'], 'Resuelta'),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.exito),
-                  child: const Text('Resolver', style: TextStyle(color: Colors.white)),
-                ),
-              ],
+              if (estado == 'EnAtención') ElevatedButton(
+                onPressed: () => _cambiarEstado(inc['id_incidencia'], 'Resuelta'),
+                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.exito),
+                child: const Text('Resolver', style: TextStyle(color: Colors.white)),
+              ),
             ]),
           ],
         ]),
@@ -153,6 +157,8 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
     final ubCtrl = TextEditingController();
     String tipo = 'Fuga';
     String urgencia = 'Media';
+    String? fotoUrl;
+    File? fotoLocal;
     final formKey = GlobalKey<FormState>();
     showModalBottomSheet(
       context: context,
@@ -192,6 +198,30 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
               onChanged: (v) => setSt(() { urgencia = v!; }),
               decoration: const InputDecoration(labelText: 'Urgencia', border: OutlineInputBorder()),
             ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+              child: Row(children: [
+                Icon(Icons.image, color: fotoUrl != null ? AppTheme.exito : Colors.grey),
+                const SizedBox(width: 10),
+                Expanded(child: Text(fotoUrl != null ? 'Foto adjuntada' : 'Sin foto', style: const TextStyle(fontSize: 14))),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final picker = ImagePicker();
+                    final foto = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+                    if (foto != null) {
+                      fotoLocal = File(foto.path);
+                      final url = await FileService.uploadImage(fotoLocal!);
+                      setSt(() { fotoUrl = url; });
+                    }
+                  },
+                  icon: const Icon(Icons.camera_alt, size: 18),
+                  label: const Text('Capturar'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8)),
+                ),
+              ]),
+            ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -208,6 +238,7 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
                       'nivel_urgencia': urgencia,
                       'estado': 'Reportada',
                       'id_usuario_reporta': AuthService.usuario!.idUsuario,
+                      'foto_url': fotoUrl,
                     });
                     Navigator.pop(ctx);
                     _cargar();

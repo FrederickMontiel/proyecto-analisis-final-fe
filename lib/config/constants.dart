@@ -1,5 +1,9 @@
 class AppConstants {
-  static const String apiUrl = 'http://localhost:3000/api';
+  static const String apiUrl = 'https://api.sos.demo.frederickmontiel.com/api';
+  /*String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'https://api.sos.demo.frederickmontiel.com/api',
+  );*/
   static const String tokenKey = 'agua_token';
   static const String usuarioKey = 'agua_usuario';
   static const String appName = 'Sistema Agua San Miguel';
@@ -15,5 +19,6 @@ class AppConstants {
   static const int colorCritico = 0xFFDC3545;
   static const int colorPrimario = 0xFF1E6091;
 }
+
 // URL API backend NestJS configurada
 // Exportacion PDF: reporte consumo y transparencia con paquete pdf
