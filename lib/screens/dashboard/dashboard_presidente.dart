@@ -12,6 +12,7 @@ import '../analisis/analisis_screen.dart';
 import '../nivel_agua/nivel_agua_screen.dart';
 import '../anuncios/anuncios_screen.dart';
 import '../sectores/gestionar_sectores_screen.dart';
+import '../hogares/gestionar_hogares_screen.dart';
 import '../calendario/calendario_screen.dart';
 import '../proveedores/proveedores_screen.dart';
 
@@ -151,6 +152,7 @@ class _DashboardPresidenteState extends State<DashboardPresidente> {
                 ),
                 _accionesGrid([
                   ('Sectores', Icons.location_on, const Color(0xFF198754), () => _ir(const GestionarSectoresScreen())),
+                  ('Hogares', Icons.home, const Color(0xFF0D6EFD), () => _ir(const GestionarHogaresScreen())),
                   ('Calendario', Icons.calendar_month, const Color(0xFF20C997), () => _ir(const CalendarioScreen())),
                   ('Anuncios', Icons.campaign, const Color(0xFF0DCAF0), () => _ir(const AnunciosScreen())),
                   ('Reportes Financieros', Icons.bar_chart, const Color(0xFFFFC107), () => _ir(const TransparenciaScreen())),
