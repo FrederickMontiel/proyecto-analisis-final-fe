@@ -161,6 +161,8 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
   void _mostrarFormularioCalendario(Map<String, dynamic>? calendario) {
     final nombreCtrl = TextEditingController(text: calendario?['nombre_calendario']?.toString());
     final descCtrl = TextEditingController(text: calendario?['descripcion']?.toString());
+    final fechaInicioCtrl = TextEditingController(text: calendario?['fecha_inicio_vigencia']?.toString() ?? DateTime.now().toString().split(' ')[0]);
+    final fechaFinCtrl = TextEditingController(text: calendario?['fecha_fin_vigencia']?.toString() ?? '');
     final formKey = GlobalKey<FormState>();
 
     showModalBottomSheet(
@@ -189,6 +191,27 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
                 maxLines: 2,
                 decoration: const InputDecoration(labelText: 'Descripción', border: OutlineInputBorder()),
               ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: fechaInicioCtrl,
+                readOnly: true,
+                decoration: const InputDecoration(labelText: 'Fecha Inicio *', suffixIcon: Icon(Icons.calendar_today), border: OutlineInputBorder()),
+                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                onTap: () async {
+                  final date = await showDatePicker(context: ctx, initialDate: DateTime.now(), firstDate: DateTime(2024), lastDate: DateTime(2030));
+                  if (date != null) fechaInicioCtrl.text = date.toString().split(' ')[0];
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: fechaFinCtrl,
+                readOnly: true,
+                decoration: const InputDecoration(labelText: 'Fecha Fin (opcional)', suffixIcon: Icon(Icons.calendar_today), border: OutlineInputBorder()),
+                onTap: () async {
+                  final date = await showDatePicker(context: ctx, initialDate: DateTime.now(), firstDate: DateTime(2024), lastDate: DateTime(2030));
+                  if (date != null) fechaFinCtrl.text = date.toString().split(' ')[0];
+                },
+              ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
@@ -200,6 +223,8 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
                       final data = {
                         'nombre_calendario': nombreCtrl.text,
                         'descripcion': descCtrl.text.isEmpty ? null : descCtrl.text,
+                        'fecha_inicio_vigencia': fechaInicioCtrl.text,
+                        'fecha_fin_vigencia': fechaFinCtrl.text.isEmpty ? null : fechaFinCtrl.text,
                       };
                       if (calendario == null) {
                         await ApiService.post('/distribucion/calendarios', data);
