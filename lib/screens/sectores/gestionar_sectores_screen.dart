@@ -270,33 +270,122 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
     );
   }
 
-  void _asignarHogares(int idSector) {
+  void _asignarHogares(int idSector) async {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Asignar Hogares'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Aquí puedes ver y asignar hogares a este sector.',
-                style: TextStyle(fontSize: 13, color: Colors.grey)),
-              const SizedBox(height: 16),
-              const Icon(Icons.info, size: 32, color: Colors.blue),
-              const SizedBox(height: 8),
-              const Text('Funcionalidad disponible en próxima actualización',
-                style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          ),
+      builder: (ctx) => _AsignarHogaresDialog(idSector: idSector, onSuccess: _cargar),
+    );
+  }
+}
+
+class _AsignarHogaresDialog extends StatefulWidget {
+  final int idSector;
+  final VoidCallback onSuccess;
+  const _AsignarHogaresDialog({required this.idSector, required this.onSuccess});
+  @override
+  State<_AsignarHogaresDialog> createState() => _AsignarHogaresDialogState();
+}
+
+class _AsignarHogaresDialogState extends State<_AsignarHogaresDialog> {
+  late Future<Map<String, dynamic>> _dataFuture;
+  late Set<int> _seleccionados;
+
+  @override
+  void initState() {
+    super.initState();
+    _dataFuture = ApiService.get('/sectores/${widget.idSector}/hogares').then((data) => data as Map<String, dynamic>);
+    _seleccionados = {};
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Asignar Hogares'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _dataFuture,
+          builder: (ctx, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+            }
+            if (snapshot.hasError) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error, size: 32, color: Colors.red),
+                  const SizedBox(height: 8),
+                  Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                ],
+              );
+            }
+            final data = snapshot.data ?? {};
+            final hogares = (data['hogares'] as List? ?? []).cast<Map<String, dynamic>>();
+            _seleccionados = Set.from(hogares.where((h) => h['asignado'] == true).map((h) => h['id_hogar'] as int));
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${hogares.length} hogares disponibles', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                const SizedBox(height: 12),
+                if (hogares.isEmpty)
+                  const Padding(padding: EdgeInsets.all(16), child: Text('Sin hogares registrados', style: TextStyle(color: Colors.grey)))
+                else
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: hogares.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, i) {
+                        final h = hogares[i];
+                        final id = h['id_hogar'] as int;
+                        final nombre = h['numero_hogar'] ?? 'Hogar sin nombre';
+                        final asignado = _seleccionados.contains(id);
+                        return CheckboxListTile(
+                          value: asignado,
+                          onChanged: (v) => setState(() {
+                            if (v == true) _seleccionados.add(id);
+                            else _seleccionados.remove(id);
+                          }),
+                          title: Text(nombre.toString(), style: const TextStyle(fontSize: 13)),
+                          subtitle: Text('ID: $id', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                          dense: true,
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar'),
-          ),
-        ],
       ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.exito),
+          onPressed: () async {
+            final nav = Navigator.of(context);
+            final scaffold = ScaffoldMessenger.of(context);
+            try {
+              await ApiService.post('/sectores/${widget.idSector}/asignar-hogares', {
+                'idsHogares': _seleccionados.toList(),
+              });
+              if (!mounted) return;
+              nav.pop();
+              widget.onSuccess();
+              scaffold.showSnackBar(
+                const SnackBar(content: Text('Hogares asignados'), backgroundColor: AppTheme.exito),
+              );
+            } catch (e) {
+              if (!mounted) return;
+              scaffold.showSnackBar(
+                SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.error),
+              );
+            }
+          },
+          child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+        ),
+      ],
     );
   }
 }
