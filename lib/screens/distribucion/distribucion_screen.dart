@@ -24,8 +24,11 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
     setState(() { _cargando = true; });
     try {
       final data = await ApiService.get('/distribucion/calendarios');
-      setState(() { _calendarios = data as List? ?? []; });
-    } catch (_) {}
+      print('DEBUG calendarios response: $data');
+      setState(() { _calendarios = data is List ? data : (data?['data'] ?? []); });
+    } catch (e) {
+      print('ERROR cargando calendarios: $e');
+    }
     setState(() { _cargando = false; });
   }
 
