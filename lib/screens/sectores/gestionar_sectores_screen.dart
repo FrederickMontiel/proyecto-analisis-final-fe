@@ -270,37 +270,34 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
     );
   }
 
-  void _asignarHogares(int idSector) async {
+  void _asignarHogares(int idSector) {
     showDialog(
       context: context,
-      builder: (ctx) => _AsignarHogaresDialog(idSector: idSector, onSuccess: _cargar),
+      builder: (ctx) => _AsignarHogaresDialog(idSector: idSector),
     );
   }
 }
 
 class _AsignarHogaresDialog extends StatefulWidget {
   final int idSector;
-  final VoidCallback onSuccess;
-  const _AsignarHogaresDialog({required this.idSector, required this.onSuccess});
+  const _AsignarHogaresDialog({required this.idSector});
   @override
   State<_AsignarHogaresDialog> createState() => _AsignarHogaresDialogState();
 }
 
 class _AsignarHogaresDialogState extends State<_AsignarHogaresDialog> {
   late Future<Map<String, dynamic>> _dataFuture;
-  late Set<int> _seleccionados;
 
   @override
   void initState() {
     super.initState();
     _dataFuture = ApiService.get('/sectores/${widget.idSector}/hogares').then((data) => data as Map<String, dynamic>);
-    _seleccionados = {};
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Asignar Hogares'),
+      title: const Text('Hogares del Sector'),
       content: SizedBox(
         width: double.maxFinite,
         child: FutureBuilder<Map<String, dynamic>>(
@@ -320,16 +317,15 @@ class _AsignarHogaresDialogState extends State<_AsignarHogaresDialog> {
               );
             }
             final data = snapshot.data ?? {};
-            final hogares = (data['hogares'] as List? ?? []).cast<Map<String, dynamic>>();
-            _seleccionados = Set.from(hogares.where((h) => h['asignado'] == true).map((h) => h['id_hogar'] as int));
+            final hogares = (data['hogares'] as List? ?? []).where((h) => h['asignado'] == true).cast<Map<String, dynamic>>().toList();
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${hogares.length} hogares disponibles', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text('${hogares.length} hogar(es) asignado(s)', style: const TextStyle(color: Colors.grey, fontSize: 13)),
                 const SizedBox(height: 12),
                 if (hogares.isEmpty)
-                  const Padding(padding: EdgeInsets.all(16), child: Text('Sin hogares registrados', style: TextStyle(color: Colors.grey)))
+                  const Padding(padding: EdgeInsets.all(16), child: Text('Sin hogares asignados', style: TextStyle(color: Colors.grey)))
                 else
                   Flexible(
                     child: ListView.separated(
@@ -338,17 +334,12 @@ class _AsignarHogaresDialogState extends State<_AsignarHogaresDialog> {
                       separatorBuilder: (_, __) => const Divider(height: 1),
                       itemBuilder: (_, i) {
                         final h = hogares[i];
-                        final id = h['id_hogar'] as int;
                         final nombre = h['numero_hogar'] ?? 'Hogar sin nombre';
-                        final asignado = _seleccionados.contains(id);
-                        return CheckboxListTile(
-                          value: asignado,
-                          onChanged: (v) => setState(() {
-                            if (v == true) _seleccionados.add(id);
-                            else _seleccionados.remove(id);
-                          }),
-                          title: Text(nombre.toString(), style: const TextStyle(fontSize: 13)),
-                          subtitle: Text('ID: $id', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                        final habitantes = h['numero_habitantes'] ?? 0;
+                        return ListTile(
+                          leading: const Icon(Icons.home, size: 20),
+                          title: Text(nombre.toString(), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                          subtitle: Text('$habitantes habitante(s)', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                           dense: true,
                         );
                       },
@@ -360,31 +351,7 @@ class _AsignarHogaresDialogState extends State<_AsignarHogaresDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.exito),
-          onPressed: () async {
-            final nav = Navigator.of(context);
-            final scaffold = ScaffoldMessenger.of(context);
-            try {
-              await ApiService.post('/sectores/${widget.idSector}/asignar-hogares', {
-                'idsHogares': _seleccionados.toList(),
-              });
-              if (!mounted) return;
-              nav.pop();
-              widget.onSuccess();
-              scaffold.showSnackBar(
-                const SnackBar(content: Text('Hogares asignados'), backgroundColor: AppTheme.exito),
-              );
-            } catch (e) {
-              if (!mounted) return;
-              scaffold.showSnackBar(
-                SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.error),
-              );
-            }
-          },
-          child: const Text('Guardar', style: TextStyle(color: Colors.white)),
-        ),
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cerrar')),
       ],
     );
   }
