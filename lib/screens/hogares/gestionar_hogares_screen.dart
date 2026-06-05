@@ -154,6 +154,7 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
 
   void _mostrarFormulario() async {
     final sectores = await _cargarSectores();
+    final usuarios = await _cargarUsuarios();
     if (!mounted) return;
 
     final numeroCtrl = TextEditingController();
@@ -162,6 +163,7 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
     final telefonoCtrl = TextEditingController();
     final habitantesCtrl = TextEditingController(text: '1');
     int? idSectorSeleccionado;
+    int? idUsuarioSeleccionado;
     final formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
@@ -207,6 +209,13 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
                 keyboardType: TextInputType.number,
                 validator: (v) => v!.isEmpty ? 'Requerido' : null,
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                value: idUsuarioSeleccionado,
+                items: usuarios.map<DropdownMenuItem<int>>((u) => DropdownMenuItem<int>(value: u['id_usuario'] as int, child: Text(u['nombre'] ?? 'N/A'))).toList(),
+                onChanged: (v) => setSt(() { idUsuarioSeleccionado = v; }),
+                decoration: const InputDecoration(labelText: 'Usuario (Responsable)', border: OutlineInputBorder(), hintText: 'Seleccione usuario'),
+              ),
             ]),
           ),
           actions: [
@@ -223,6 +232,7 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
                     'telefono_contacto': telefonoCtrl.text,
                     'numero_habitantes': int.parse(habitantesCtrl.text),
                     'id_sector': idSectorSeleccionado,
+                    'id_usuario': idUsuarioSeleccionado,
                     'estado': 'Activo',
                   });
                   if (ctx.mounted) Navigator.pop(ctx);
@@ -254,20 +264,25 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
     }
   }
 
-  void _mostrarEditar(Map<String, dynamic> h) {
+  void _mostrarEditar(Map<String, dynamic> h) async {
+    final usuarios = await _cargarUsuarios();
+    if (!mounted) return;
+
     final numeroCtrl = TextEditingController(text: h['numero_hogar']?.toString());
     final responsableCtrl = TextEditingController(text: h['responsable']?.toString());
     final direccionCtrl = TextEditingController(text: h['direccion']?.toString());
     final telefonoCtrl = TextEditingController(text: h['telefono_contacto']?.toString());
     final habitantesCtrl = TextEditingController(text: h['numero_habitantes']?.toString() ?? '1');
+    int? idUsuarioSeleccionado = h['id_usuario'] as int?;
     final formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Editar Hogar'),
-        content: Form(
-          key: formKey,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx2, setSt) => AlertDialog(
+          title: const Text('Editar Hogar'),
+          content: Form(
+            key: formKey,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
             TextFormField(
               controller: numeroCtrl,
               decoration: const InputDecoration(labelText: 'Número del Hogar *', border: OutlineInputBorder()),
@@ -296,6 +311,13 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
               keyboardType: TextInputType.number,
               validator: (v) => v!.isEmpty ? 'Requerido' : null,
             ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<int>(
+              value: idUsuarioSeleccionado,
+              items: usuarios.map<DropdownMenuItem<int>>((u) => DropdownMenuItem<int>(value: u['id_usuario'] as int, child: Text(u['nombre'] ?? 'N/A'))).toList(),
+              onChanged: (v) => setSt(() { idUsuarioSeleccionado = v; }),
+              decoration: const InputDecoration(labelText: 'Usuario (Responsable)', border: OutlineInputBorder(), hintText: 'Seleccione usuario'),
+            ),
           ]),
         ),
         actions: [
@@ -311,6 +333,7 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
                   'direccion': direccionCtrl.text,
                   'telefono_contacto': telefonoCtrl.text,
                   'numero_habitantes': int.parse(habitantesCtrl.text),
+                  'id_usuario': idUsuarioSeleccionado,
                 });
                 if (ctx.mounted) Navigator.pop(ctx);
                 _cargar();
@@ -329,7 +352,16 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
           ),
         ],
       ),
+        ),
     );
+  }
+
+  Future<List<dynamic>> _cargarUsuarios() async {
+    try {
+      return await ApiService.get('/usuarios') ?? [];
+    } catch (_) {
+      return [];
+    }
   }
 
   void _eliminar(int idHogar) {
