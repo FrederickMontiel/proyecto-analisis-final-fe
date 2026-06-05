@@ -22,6 +22,7 @@ class DashboardOperador extends StatefulWidget {
 class _DashboardOperadorState extends State<DashboardOperador> {
   Map<String, dynamic>? _nivelActual;
   List<dynamic> _incidenciasActivas = [];
+  List<dynamic> _mantenimientosProximos = [];
   bool _cargando = true;
   String _ultimaActualizacion = '';
 
@@ -34,9 +35,11 @@ class _DashboardOperadorState extends State<DashboardOperador> {
       final results = await Future.wait([
         ApiService.get('/niveles'),
         ApiService.get('/incidencias'),
+        ApiService.get('/mantenimientos/alertas/proximos'),
       ]);
       final niveles = results[0] as List;
       final incidencias = results[1] as List;
+      final mantenimientos = results[2] as List;
       if (niveles.isNotEmpty) {
         _nivelActual = niveles.last;
         final fecha = DateTime.tryParse(_nivelActual!['fecha_registro']?.toString() ?? '');
@@ -47,6 +50,7 @@ class _DashboardOperadorState extends State<DashboardOperador> {
       setState(() {
         _incidenciasActivas = incidencias.where((i) =>
             i['estado'] == 'Reportada' || i['estado'] == 'EnRevisión' || i['estado'] == 'EnAtención').toList();
+        _mantenimientosProximos = mantenimientos;
       });
     } catch (_) {}
     setState(() { _cargando = false; });
@@ -85,6 +89,30 @@ class _DashboardOperadorState extends State<DashboardOperador> {
           : RefreshIndicator(
               onRefresh: _cargar,
               child: ListView(children: [
+                if (_mantenimientosProximos.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        border: Border.all(color: Colors.orange),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning, color: Colors.orange, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '${_mantenimientosProximos.length} mantenimiento(s) próximo(s) en 7 días',
+                              style: const TextStyle(fontSize: 13, color: Colors.orange, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 // Header gradient
                 Container(
                   decoration: const BoxDecoration(
