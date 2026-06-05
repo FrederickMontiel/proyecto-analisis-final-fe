@@ -43,6 +43,11 @@ class ApiService {
     return _handleResponse(response);
   }
 
+  static Future<String> descargarArchivo(String endpoint, String nombreArchivo) async {
+    final url = '${AppConstants.apiUrl}$endpoint';
+    return Uri.encodeFull('$url&_token=${AuthService.token}&_filename=$nombreArchivo');
+  }
+
   static dynamic _handleResponse(http.Response response) {
     if (response.statusCode == 401) {
       AuthService.cerrarSesion();
@@ -56,7 +61,4 @@ class ApiService {
     return jsonDecode(response.body);
   }
 }
-// ApiService: manejo 401 auto-logout, errores del servidor
-// Endpoints pagos y gastos conectados al backend NestJS
-// API sectores y mantenimientos conectadas
-// Integracion completa frontend Flutter con API backend NestJS
+
