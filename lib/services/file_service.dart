@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 import '../config/constants.dart';
@@ -31,6 +32,15 @@ class FileService {
         final name = fileName ?? 'image.png';
         final contentType = _getContentType(name);
         request.files.add(http.MultipartFile.fromBytes('file', imageFile, filename: name, contentType: http.MediaType.parse(contentType)));
+      } else if (imageFile is Stream<List<int>>) {
+        final name = fileName ?? 'image.png';
+        final contentType = _getContentType(name);
+        final bytesBuilder = BytesBuilder();
+        await for (final chunk in imageFile) {
+          bytesBuilder.add(chunk);
+        }
+        final bytes = bytesBuilder.toBytes();
+        request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: name, contentType: http.MediaType.parse(contentType)));
       } else {
         return null;
       }

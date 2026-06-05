@@ -8,6 +8,7 @@ import '../../services/auth_service.dart';
 import '../../services/file_service.dart';
 import '../../services/proveedores_service.dart';
 import '../../services/debug_service.dart';
+import '../../services/web_file_picker.dart';
 
 class MantenimientosScreen extends StatefulWidget {
   const MantenimientosScreen({super.key});
@@ -360,48 +361,73 @@ class _MantenimientosScreenState extends State<MantenimientosScreen> {
                     onPressed: () async {
                       DebugService.log('FilePicker: onClick');
                       try {
-                        DebugService.log('FilePicker: Llamando pickFiles, kIsWeb=$kIsWeb');
-                        final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
-                        DebugService.log('FilePicker: result=$result');
-                        if (result != null && result.files.isNotEmpty) {
-                          DebugService.log('FilePicker: archivos seleccionados');
-                          final file = result.files.first;
-                          DebugService.log('FilePicker: file.name=${file.name}, bytes=${file.bytes != null}, path=${file.path}');
-                          dynamic uploadData;
-                          String? fileName;
-                          if (kIsWeb && file.bytes != null) {
-                            uploadData = file.bytes!;
-                            fileName = file.name;
-                            DebugService.log('FilePicker: Web, bytes=${file.bytes!.length}');
-                          } else if (!kIsWeb && file.path != null) {
-                            uploadData = File(file.path!);
-                            DebugService.log('FilePicker: Mobile, path=${file.path}');
+                        DebugService.log('FilePicker: picking, kIsWeb=$kIsWeb');
+                        dynamic uploadData;
+                        String? fileName;
+
+                        if (kIsWeb) {
+                          DebugService.log('FilePicker: using WebFilePicker');
+                          final webResult = await WebFilePicker.pickFile(allowedExtensions: ['jpg', 'jpeg', 'png']);
+                          if (webResult != null) {
+                            DebugService.log('FilePicker: web file selected=${webResult.name}, bytes=${webResult.bytes.length}');
+                            uploadData = webResult.bytes;
+                            fileName = webResult.name;
                           } else {
-                            DebugService.log('FilePicker: No bytes ni path disponibles');
+                            DebugService.log('FilePicker: web canceled');
                             return;
                           }
-                          DebugService.log('FilePicker: Subiendo archivo, fileName=$fileName');
-                          final url = await FileService.uploadImage(uploadData, fileName: fileName);
-                          DebugService.log('FilePicker: URL response=$url');
-                          if (url != null) {
-                            setSt(() { fotoUrl = url; });
-                            if (ctx2.mounted) {
-                              ScaffoldMessenger.of(ctx2).showSnackBar(
-                                const SnackBar(content: Text('Foto cargada'), backgroundColor: AppTheme.exito, duration: Duration(seconds: 2))
-                              );
+                        } else {
+                          DebugService.log('FilePicker: using FilePicker.platform');
+                          final result = await FilePicker.platform.pickFiles(
+                            type: FileType.custom,
+                            allowedExtensions: ['jpg', 'jpeg', 'png'],
+                            withData: true,
+                          );
+                          DebugService.log('FilePicker: result=$result');
+                          if (result != null && result.files.isNotEmpty) {
+                            final file = result.files.first;
+                            DebugService.log('FilePicker: ${file.name}, size=${file.size}, bytes=${file.bytes != null}');
+
+                            if (file.bytes != null) {
+                              DebugService.log('FilePicker: using bytes');
+                              uploadData = file.bytes!;
+                            } else if (file.readStream != null) {
+                              DebugService.log('FilePicker: using readStream');
+                              uploadData = file.readStream;
+                            } else if (file.path != null) {
+                              DebugService.log('FilePicker: using file.path');
+                              uploadData = File(file.path!);
+                            } else {
+                              DebugService.log('FilePicker: no data available');
+                              return;
                             }
+                            fileName = file.name;
                           } else {
-                            if (ctx2.mounted) {
-                              ScaffoldMessenger.of(ctx2).showSnackBar(
-                                const SnackBar(content: Text('Error al cargar foto'), backgroundColor: AppTheme.error, duration: Duration(seconds: 2))
-                              );
-                            }
+                            DebugService.log('FilePicker: mobile canceled');
+                            return;
+                          }
+                        }
+
+                        DebugService.log('FilePicker: uploading $fileName');
+                        final url = await FileService.uploadImage(uploadData, fileName: fileName);
+                        DebugService.log('FilePicker: url=$url');
+
+                        if (url != null) {
+                          setSt(() { fotoUrl = url; });
+                          if (ctx2.mounted) {
+                            ScaffoldMessenger.of(ctx2).showSnackBar(
+                              const SnackBar(content: Text('Foto cargada'), backgroundColor: AppTheme.exito, duration: Duration(seconds: 2))
+                            );
                           }
                         } else {
-                          DebugService.log('FilePicker: result es null o sin archivos');
+                          if (ctx2.mounted) {
+                            ScaffoldMessenger.of(ctx2).showSnackBar(
+                              const SnackBar(content: Text('Error al cargar foto'), backgroundColor: AppTheme.error, duration: Duration(seconds: 2))
+                            );
+                          }
                         }
                       } catch (e) {
-                        DebugService.log('FilePicker: Error exception=$e');
+                        DebugService.log('FilePicker: $e');
                       }
                     },
                     icon: const Icon(Icons.camera_alt, size: 16),

@@ -8,7 +8,7 @@ class DebugService {
     final timestamp = DateTime.now().toIso8601String();
     final logMessage = '[$timestamp] $message';
     _logs.add(logMessage);
-    if (kDebugMode) print(logMessage);
+    if (kDebugMode || kIsWeb) print(logMessage);
   }
 
   static List<String> getLogs() => List.from(_logs);
