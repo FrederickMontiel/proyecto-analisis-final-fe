@@ -202,10 +202,12 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
-              child: Row(children: [
-                Icon(Icons.image, color: fotoUrl != null ? AppTheme.exito : Colors.grey),
-                const SizedBox(width: 10),
-                Expanded(child: Text(fotoUrl != null ? 'Foto adjuntada' : 'Sin foto', style: const TextStyle(fontSize: 14))),
+              child: Wrap(spacing: 10, runSpacing: 8, alignment: WrapAlignment.spaceBetween, children: [
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.image, color: fotoUrl != null ? AppTheme.exito : Colors.grey),
+                  const SizedBox(width: 6),
+                  Text(fotoUrl != null ? 'Foto adjuntada' : 'Sin foto', style: const TextStyle(fontSize: 14)),
+                ]),
                 ElevatedButton.icon(
                   onPressed: () async {
                     final picker = ImagePicker();
