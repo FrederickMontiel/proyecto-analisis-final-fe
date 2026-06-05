@@ -98,15 +98,20 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('Agregar Horario'),
-                  onPressed: () => _mostrarFormularioDetalle(cal['id_calendario'], null),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Agregar Horario'),
+                    onPressed: () => _mostrarFormularioDetalle(cal['id_calendario'], null),
+                  ),
                 ),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.edit, size: 16),
-                  label: const Text('Editar'),
-                  onPressed: () => _mostrarFormularioCalendario(cal),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.edit, size: 16),
+                    label: const Text('Editar'),
+                    onPressed: () => _mostrarFormularioCalendario(cal),
+                  ),
                 ),
               ],
             ),
