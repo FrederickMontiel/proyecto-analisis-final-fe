@@ -152,83 +152,106 @@ class _GestionarHogaresScreenState extends State<GestionarHogaresScreen> {
     );
   }
 
-  void _mostrarFormulario() {
+  void _mostrarFormulario() async {
+    final sectores = await _cargarSectores();
+    if (!mounted) return;
+
     final numeroCtrl = TextEditingController();
     final responsableCtrl = TextEditingController();
     final direccionCtrl = TextEditingController();
     final telefonoCtrl = TextEditingController();
     final habitantesCtrl = TextEditingController(text: '1');
+    int? idSectorSeleccionado;
     final formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Nuevo Hogar'),
-        content: Form(
-          key: formKey,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextFormField(
-              controller: numeroCtrl,
-              decoration: const InputDecoration(labelText: 'Número del Hogar *', border: OutlineInputBorder(), hintText: 'Ej: H-001'),
-              validator: (v) => v!.isEmpty ? 'Requerido' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: responsableCtrl,
-              decoration: const InputDecoration(labelText: 'Responsable', border: OutlineInputBorder(), hintText: 'Nombre del responsable'),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: direccionCtrl,
-              decoration: const InputDecoration(labelText: 'Dirección *', border: OutlineInputBorder(), hintText: 'Dirección completa'),
-              validator: (v) => v!.isEmpty ? 'Requerido' : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: telefonoCtrl,
-              decoration: const InputDecoration(labelText: 'Teléfono', border: OutlineInputBorder(), hintText: 'Teléfono de contacto'),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: habitantesCtrl,
-              decoration: const InputDecoration(labelText: 'Habitantes *', border: OutlineInputBorder()),
-              keyboardType: TextInputType.number,
-              validator: (v) => v!.isEmpty ? 'Requerido' : null,
-            ),
-          ]),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.exito),
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-              try {
-                await ApiService.post('/hogares', {
-                  'numero_hogar': numeroCtrl.text,
-                  'responsable': responsableCtrl.text,
-                  'direccion': direccionCtrl.text,
-                  'telefono_contacto': telefonoCtrl.text,
-                  'numero_habitantes': int.parse(habitantesCtrl.text),
-                  'estado': 'Activo',
-                });
-                if (ctx.mounted) Navigator.pop(ctx);
-                _cargar();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Hogar creado'), backgroundColor: AppTheme.exito));
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.error));
-                }
-              }
-            },
-            child: const Text('Crear Hogar', style: TextStyle(color: Colors.white)),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx2, setSt) => AlertDialog(
+          title: const Text('Nuevo Hogar'),
+          content: Form(
+            key: formKey,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              DropdownButtonFormField<int>(
+                value: idSectorSeleccionado,
+                items: sectores.map<DropdownMenuItem<int>>((s) => DropdownMenuItem<int>(value: s['id_sector'] as int, child: Text(s['nombre_sector'] ?? 'N/A'))).toList(),
+                onChanged: (v) => setSt(() { idSectorSeleccionado = v; }),
+                decoration: const InputDecoration(labelText: 'Sector *', border: OutlineInputBorder()),
+                validator: (v) => v == null ? 'Seleccione sector' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: numeroCtrl,
+                decoration: const InputDecoration(labelText: 'Número del Hogar *', border: OutlineInputBorder(), hintText: 'Ej: H-001'),
+                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: responsableCtrl,
+                decoration: const InputDecoration(labelText: 'Responsable', border: OutlineInputBorder(), hintText: 'Nombre del responsable'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: direccionCtrl,
+                decoration: const InputDecoration(labelText: 'Dirección *', border: OutlineInputBorder(), hintText: 'Dirección completa'),
+                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: telefonoCtrl,
+                decoration: const InputDecoration(labelText: 'Teléfono', border: OutlineInputBorder(), hintText: 'Teléfono de contacto'),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: habitantesCtrl,
+                decoration: const InputDecoration(labelText: 'Habitantes *', border: OutlineInputBorder()),
+                keyboardType: TextInputType.number,
+                validator: (v) => v!.isEmpty ? 'Requerido' : null,
+              ),
+            ]),
           ),
-        ],
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppTheme.exito),
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                try {
+                  await ApiService.post('/hogares', {
+                    'numero_hogar': numeroCtrl.text,
+                    'responsable': responsableCtrl.text,
+                    'direccion': direccionCtrl.text,
+                    'telefono_contacto': telefonoCtrl.text,
+                    'numero_habitantes': int.parse(habitantesCtrl.text),
+                    'id_sector': idSectorSeleccionado,
+                    'estado': 'Activo',
+                  });
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  _cargar();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Hogar creado'), backgroundColor: AppTheme.exito));
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.error));
+                  }
+                }
+              },
+              child: const Text('Crear Hogar', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Future<List<dynamic>> _cargarSectores() async {
+    try {
+      return await ApiService.get('/sectores') ?? [];
+    } catch (_) {
+      return [];
+    }
   }
 
   void _mostrarEditar(Map<String, dynamic> h) {
