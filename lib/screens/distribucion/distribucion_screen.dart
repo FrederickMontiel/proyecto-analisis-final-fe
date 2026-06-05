@@ -264,7 +264,7 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
                   value: idSectorSeleccionado,
-                  items: sectores.map((s) => DropdownMenuItem(value: s['id_sector'], child: Text(s['nombre_sector'] ?? 'N/A'))).toList(),
+                  items: sectores.map<DropdownMenuItem<int>>((s) => DropdownMenuItem<int>(value: s['id_sector'] as int, child: Text(s['nombre_sector'] ?? 'N/A'))).toList(),
                   onChanged: (v) => setSt(() { idSectorSeleccionado = v; }),
                   decoration: const InputDecoration(labelText: 'Sector *', border: OutlineInputBorder()),
                   validator: (v) => v == null ? 'Seleccione sector' : null,
