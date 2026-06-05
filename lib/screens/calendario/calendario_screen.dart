@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/auth_service.dart';
+import '../../services/api_service.dart';
 
 class CalendarioScreen extends StatefulWidget {
   const CalendarioScreen({super.key});
@@ -8,206 +8,124 @@ class CalendarioScreen extends StatefulWidget {
 }
 
 class _CalendarioScreenState extends State<CalendarioScreen> {
-  String _sectorSel = 'Sector 2';
-  final _sectores = ['Sector 1', 'Sector 2', 'Sector 3', 'Sector 4', 'Sector 5'];
+  List<dynamic> _calendarios = [];
+  bool _cargando = true;
 
-  // Calendario estático semanal de distribución
-  List<Map<String, dynamic>> get _semanaActual {
-    final hoy = DateTime.now();
-    return [
-      {
-        'fecha': _formatearFecha(hoy),
-        'dia': _nombreDia(hoy.weekday),
-        'hora': '6:00 AM - 10:00 AM',
-        'sector': 'Sector 2',
-        'hogares': '11-25',
-        'esMiTurno': _sectorSel == 'Sector 2',
-      },
-      {
-        'fecha': _formatearFecha(hoy.add(const Duration(days: 1))),
-        'dia': _nombreDia((hoy.weekday % 7) + 1),
-        'hora': '10:00 AM - 2:00 PM',
-        'sector': 'Sector 3',
-        'hogares': '26-40',
-        'esMiTurno': _sectorSel == 'Sector 3',
-      },
-      {
-        'fecha': _formatearFecha(hoy.add(const Duration(days: 2))),
-        'dia': _nombreDia((hoy.weekday + 1) % 7 + 1),
-        'hora': '10:00 AM - 2:00 PM',
-        'sector': 'Sector 4',
-        'hogares': '41-60',
-        'esMiTurno': _sectorSel == 'Sector 4',
-      },
-    ];
+  static const List<String> _diasSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargar();
   }
 
-  List<Map<String, dynamic>> get _proximaSemana {
-    final hoy = DateTime.now();
-    return [
-      {
-        'fecha': _formatearFecha(hoy.add(const Duration(days: 3))),
-        'dia': _nombreDia((hoy.weekday + 2) % 7 + 1),
-        'hora': '6:00 AM - 10:00 AM',
-        'sector': 'Sector 5',
-        'hogares': '61-80',
-        'esMiTurno': _sectorSel == 'Sector 5',
-      },
-      {
-        'fecha': _formatearFecha(hoy.add(const Duration(days: 4))),
-        'dia': _nombreDia((hoy.weekday + 3) % 7 + 1),
-        'hora': '6:00 AM - 10:00 AM',
-        'sector': 'Sector 1',
-        'hogares': '1-10',
-        'esMiTurno': _sectorSel == 'Sector 1',
-      },
-      {
-        'fecha': _formatearFecha(hoy.add(const Duration(days: 5))),
-        'dia': _nombreDia((hoy.weekday + 4) % 7 + 1),
-        'hora': '6:00 AM - 10:00 AM',
-        'sector': 'Sector 2',
-        'hogares': '11-25',
-        'esMiTurno': _sectorSel == 'Sector 2',
-      },
-    ];
-  }
-
-  String _nombreDia(int weekday) {
-    const dias = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
-    return dias[(weekday - 1) % 7];
-  }
-
-  String _formatearFecha(DateTime d) {
-    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    return '${_nombreDia(d.weekday)} ${d.day} ${meses[d.month - 1]}';
+  Future<void> _cargar() async {
+    setState(() { _cargando = true; });
+    try {
+      final data = await ApiService.get('/distribucion/calendarios');
+      setState(() { _calendarios = data is List ? data : (data?['data'] ?? []); });
+    } catch (e) {
+      print('Error cargando calendarios: $e');
+    }
+    setState(() { _cargando = false; });
   }
 
   @override
   Widget build(BuildContext context) {
-    final rol = AuthService.usuario?.rol ?? '';
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Calendario', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color(0xFF20C997),
+        title: const Text('Calendario de Distribución', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.teal,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _cargar)],
       ),
-      body: ListView(children: [
-        // Filtro sector
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Icon(Icons.filter_list, size: 18, color: Colors.grey),
-              const SizedBox(width: 6),
-              const Text('Filtrar por Sector', style: TextStyle(fontSize: 14, color: Colors.grey)),
-            ]),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _sectorSel,
-              items: _sectores.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-              onChanged: (v) => setState(() { _sectorSel = v!; }),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                filled: true, fillColor: Colors.white,
-              ),
-            ),
-          ]),
-        ),
-        // Esta semana
-        _seccion('Esta Semana', _semanaActual, true),
-        // Próxima semana
-        _seccion('Próxima Semana', _proximaSemana, false),
-        // Info
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE7F5FF), borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF74C0FC)),
-            ),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Row(children: [
-                Icon(Icons.info_outline, color: Color(0xFF1971C2), size: 18),
-                SizedBox(width: 6),
-                Text('Información del Servicio', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1971C2))),
-              ]),
-              const SizedBox(height: 8),
-              _infoRow('Calendario', 'Semanal — 2 servicios por semana'),
-              _infoRow('Duración', '4 horas por sector'),
-              _infoRow('Sectores', '5 sectores activos'),
-              if (rol == 'Presidente' || rol == 'Operador')
-                _infoRow('Hogares', '120 hogares registrados'),
-            ]),
+      body: _cargando
+          ? const Center(child: CircularProgressIndicator())
+          : _calendarios.isEmpty
+              ? RefreshIndicator(
+                  onRefresh: _cargar,
+                  child: ListView(children: const [
+                    SizedBox(height: 60),
+                    Center(child: Icon(Icons.calendar_today, size: 64, color: Colors.grey)),
+                    Center(child: Text('Sin calendarios de distribución', style: TextStyle(color: Colors.grey))),
+                  ]),
+                )
+              : RefreshIndicator(
+                  onRefresh: _cargar,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _calendarios.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (_, i) => _cardCalendario(_calendarios[i]),
+                  ),
+                ),
+    );
+  }
+
+  Widget _cardCalendario(Map<String, dynamic> cal) {
+    final detalles = (cal['detalles'] as List? ?? []).cast<Map<String, dynamic>>();
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(cal['nombre_calendario']?.toString() ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('${detalles.length} horarios'),
+            trailing: const Icon(Icons.schedule),
           ),
-        ),
-      ]),
+          if (cal['descripcion'] != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(cal['descripcion'], style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            ),
+          if (detalles.isNotEmpty)
+            ...detalles.map((detalle) => _itemDetalle(detalle))
+          else
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Sin horarios', style: TextStyle(color: Colors.grey, fontSize: 12)),
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _seccion(String titulo, List<Map<String, dynamic>> dias, bool primera) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: Text(titulo,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
+  Widget _itemDetalle(Map<String, dynamic> detalle) {
+    final sector = detalle['sector'] as Map<String, dynamic>? ?? {};
+    final dia = _diasSemana[detalle['dia_semana'] as int? ?? 0];
+    final inicio = detalle['hora_inicio']?.toString().substring(0, 5) ?? '00:00';
+    final fin = detalle['hora_fin']?.toString().substring(0, 5) ?? '00:00';
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.teal.shade200),
       ),
-      ...dias.map((d) => _tarjetaDia(d)),
-    ]);
-  }
-
-  Widget _tarjetaDia(Map<String, dynamic> d) {
-    final esMiTurno = d['esMiTurno'] as bool;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: esMiTurno
-              ? Border.all(color: const Color(0xFF198754), width: 2)
-              : Border.all(color: Colors.grey.shade200),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 2))],
-        ),
-        padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Text(d['fecha'], style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-            const Spacer(),
-            if (esMiTurno)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(color: const Color(0xFF198754), borderRadius: BorderRadius.circular(12)),
-                child: const Text('MI TURNO', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(dia, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('${sector['nombre_sector'] ?? 'N/A'}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text('$inicio - $fin', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.teal)),
+                ],
               ),
-          ]),
-          const SizedBox(height: 6),
-          Row(children: [
-            const Icon(Icons.schedule, size: 16, color: Colors.grey),
-            const SizedBox(width: 6),
-            Text(d['hora'], style: const TextStyle(fontSize: 13, color: Color(0xFF198754), fontWeight: FontWeight.w600)),
-          ]),
-          const SizedBox(height: 4),
-          Row(children: [
-            const Icon(Icons.location_on, size: 16, color: Colors.grey),
-            const SizedBox(width: 6),
-            Text('${d['sector']} — Hogares ${d['hogares']}',
-                style: const TextStyle(fontSize: 13, color: Colors.grey)),
-          ]),
-        ]),
+            ],
+          ),
+          if (detalle['descripcion'] != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(detalle['descripcion'], style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ),
+        ],
       ),
-    );
-  }
-
-  Widget _infoRow(String label, String valor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(children: [
-        Text('$label: ', style: const TextStyle(fontSize: 13, color: Color(0xFF1971C2), fontWeight: FontWeight.w600)),
-        Text(valor, style: const TextStyle(fontSize: 13, color: Color(0xFF1971C2))),
-      ]),
     );
   }
 }
