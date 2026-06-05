@@ -2,13 +2,14 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
+import '../config/constants.dart';
 
 class FileService {
   static Future<String?> uploadImage(File imageFile) async {
     if (!AuthService.estaAutenticado) return null;
 
     try {
-      final uri = Uri.parse('${Constants.apiUrl}/upload');
+      final uri = Uri.parse('${AppConstants.apiUrl}/upload');
       final token = AuthService.token;
 
       final request = http.MultipartRequest('POST', uri)
