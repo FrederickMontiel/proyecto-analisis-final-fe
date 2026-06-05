@@ -136,7 +136,7 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () => _asignarHogares(s['id_sector']),
               icon: const Icon(Icons.home_work, size: 16, color: Colors.white),
               label: const Text('Hogares', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
@@ -165,7 +165,6 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
   void _mostrarFormulario() {
     final nombreCtrl = TextEditingController();
     final descCtrl = TextEditingController();
-    final hogaresCtrl = TextEditingController(text: '0');
     final formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
@@ -187,12 +186,6 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
               decoration: const InputDecoration(labelText: 'Descripción',
                   border: OutlineInputBorder(), hintText: 'Descripción de la ubicación...'),
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: hogaresCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Número Estimado de Hogares', border: OutlineInputBorder()),
-            ),
           ]),
         ),
         actions: [
@@ -205,7 +198,6 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
                 await ApiService.post('/sectores', {
                   'nombre_sector': nombreCtrl.text,
                   'descripcion': descCtrl.text,
-                  'numero_hogares': int.tryParse(hogaresCtrl.text) ?? 0,
                   'estado': 'Activo',
                 });
                 if (ctx.mounted) Navigator.pop(ctx);
@@ -231,7 +223,6 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
   void _mostrarEditar(Map<String, dynamic> s) {
     final nombreCtrl = TextEditingController(text: s['nombre_sector']?.toString() ?? '');
     final descCtrl = TextEditingController(text: s['descripcion']?.toString() ?? '');
-    final hogaresCtrl = TextEditingController(text: s['numero_hogares'].toString());
     final formKey = GlobalKey<FormState>();
     showDialog(
       context: context,
@@ -246,9 +237,6 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
             const SizedBox(height: 12),
             TextFormField(controller: descCtrl, maxLines: 2,
                 decoration: const InputDecoration(labelText: 'Descripción', border: OutlineInputBorder())),
-            const SizedBox(height: 12),
-            TextFormField(controller: hogaresCtrl, keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Hogares', border: OutlineInputBorder())),
           ]),
         ),
         actions: [
@@ -261,7 +249,6 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
                 await ApiService.put('/sectores/${s['id_sector']}', {
                   'nombre_sector': nombreCtrl.text,
                   'descripcion': descCtrl.text,
-                  'numero_hogares': int.tryParse(hogaresCtrl.text) ?? 0,
                 });
                 if (ctx.mounted) Navigator.pop(ctx);
                 _cargar();
@@ -277,6 +264,36 @@ class _GestionarSectoresScreenState extends State<GestionarSectoresScreen> {
               }
             },
             child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _asignarHogares(int idSector) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Asignar Hogares'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Aquí puedes ver y asignar hogares a este sector.',
+                style: TextStyle(fontSize: 13, color: Colors.grey)),
+              const SizedBox(height: 16),
+              const Icon(Icons.info, size: 32, color: Colors.blue),
+              const SizedBox(height: 8),
+              const Text('Funcionalidad disponible en próxima actualización',
+                style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cerrar'),
           ),
         ],
       ),
