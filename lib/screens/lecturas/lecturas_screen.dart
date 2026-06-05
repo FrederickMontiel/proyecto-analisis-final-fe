@@ -149,33 +149,41 @@ class _LecturasScreenState extends State<LecturasScreen> {
                 ]),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
-                    if (result != null && result.files.isNotEmpty) {
-                      final file = result.files.first;
-                      dynamic uploadData;
-                      String? fileName;
-                      if (kIsWeb && file.bytes != null) {
-                        uploadData = file.bytes!;
-                        fileName = file.name;
-                      } else if (!kIsWeb && file.path != null) {
-                        uploadData = File(file.path!);
-                      } else {
-                        return;
+                    try {
+                      final result = await FilePicker.platform.pickFiles(type: FileType.image, allowMultiple: false);
+                      if (result != null && result.files.isNotEmpty) {
+                        final file = result.files.first;
+                        dynamic uploadData;
+                        String? fileName;
+                        if (kIsWeb && file.bytes != null) {
+                          uploadData = file.bytes!;
+                          fileName = file.name;
+                        } else if (!kIsWeb && file.path != null) {
+                          uploadData = File(file.path!);
+                        } else {
+                          return;
+                        }
+                        final url = await FileService.uploadImage(uploadData, fileName: fileName);
+                        if (url != null) {
+                          setSt(() { fotoUrl = url; });
+                          if (ctx2.mounted) {
+                            ScaffoldMessenger.of(ctx2).showSnackBar(
+                              const SnackBar(content: Text('Foto cargada'), backgroundColor: AppTheme.exito, duration: Duration(seconds: 2))
+                            );
+                          }
+                        } else {
+                          if (ctx2.mounted) {
+                            ScaffoldMessenger.of(ctx2).showSnackBar(
+                              const SnackBar(content: Text('Error al cargar foto'), backgroundColor: AppTheme.error, duration: Duration(seconds: 2))
+                            );
+                          }
+                        }
                       }
-                      final url = await FileService.uploadImage(uploadData, fileName: fileName);
-                      if (url != null) {
-                        setSt(() { fotoUrl = url; });
-                        if (ctx2.mounted) {
-                          ScaffoldMessenger.of(ctx2).showSnackBar(
-                            const SnackBar(content: Text('Foto cargada'), backgroundColor: AppTheme.exito, duration: Duration(seconds: 2))
-                          );
-                        }
-                      } else {
-                        if (ctx2.mounted) {
-                          ScaffoldMessenger.of(ctx2).showSnackBar(
-                            const SnackBar(content: Text('Error al cargar foto'), backgroundColor: AppTheme.error, duration: Duration(seconds: 2))
-                          );
-                        }
+                    } catch (e) {
+                      if (ctx2.mounted) {
+                        ScaffoldMessenger.of(ctx2).showSnackBar(
+                          const SnackBar(content: Text('Permiso denegado o error al seleccionar foto'), backgroundColor: AppTheme.error)
+                        );
                       }
                     }
                   },
