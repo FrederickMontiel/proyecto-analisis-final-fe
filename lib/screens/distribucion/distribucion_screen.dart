@@ -70,7 +70,7 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
   Widget _cardCalendario(Map<String, dynamic> cal) {
     final detalles = (cal['detalles'] as List? ?? []).cast<Map<String, dynamic>>();
     return ExpansionTile(
-      title: Text(cal['nombre']?.toString() ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
+      title: Text(cal['nombre_calendario']?.toString() ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text('${detalles.length} horarios registrados'),
       children: [
         if (cal['descripcion'] != null)
@@ -159,7 +159,7 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
   }
 
   void _mostrarFormularioCalendario(Map<String, dynamic>? calendario) {
-    final nombreCtrl = TextEditingController(text: calendario?['nombre']?.toString());
+    final nombreCtrl = TextEditingController(text: calendario?['nombre_calendario']?.toString());
     final descCtrl = TextEditingController(text: calendario?['descripcion']?.toString());
     final formKey = GlobalKey<FormState>();
 
@@ -198,7 +198,7 @@ class _DistribucionScreenState extends State<DistribucionScreen> {
                     if (!formKey.currentState!.validate()) return;
                     try {
                       final data = {
-                        'nombre': nombreCtrl.text,
+                        'nombre_calendario': nombreCtrl.text,
                         'descripcion': descCtrl.text.isEmpty ? null : descCtrl.text,
                       };
                       if (calendario == null) {
