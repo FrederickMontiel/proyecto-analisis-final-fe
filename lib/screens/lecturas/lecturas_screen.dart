@@ -154,7 +154,20 @@ class _LecturasScreenState extends State<LecturasScreen> {
                     if (foto != null) {
                       fotoLocal = File(foto.path);
                       final url = await FileService.uploadImage(fotoLocal!);
-                      setSt(() { fotoUrl = url; });
+                      if (url != null) {
+                        setSt(() { fotoUrl = url; });
+                        if (ctx2.mounted) {
+                          ScaffoldMessenger.of(ctx2).showSnackBar(
+                            const SnackBar(content: Text('Foto cargada'), backgroundColor: AppTheme.exito, duration: Duration(seconds: 2))
+                          );
+                        }
+                      } else {
+                        if (ctx2.mounted) {
+                          ScaffoldMessenger.of(ctx2).showSnackBar(
+                            const SnackBar(content: Text('Error al cargar foto'), backgroundColor: AppTheme.error, duration: Duration(seconds: 2))
+                          );
+                        }
+                      }
                     }
                   },
                   icon: const Icon(Icons.camera_alt, size: 18),
