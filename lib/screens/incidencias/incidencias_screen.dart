@@ -90,10 +90,12 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
     final urgencia = inc['nivel_urgencia']?.toString() ?? 'Media';
     final colorEstado = _colorEstado(estado);
     final fecha = inc['fecha_reporte']?.toString().substring(0, 10) ?? '';
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    return GestureDetector(
+      onTap: () => _mostrarDetalle(inc['id_incidencia']),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Text(inc['numero_incidencia']?.toString() ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.grey)),
             const Spacer(),
@@ -138,7 +140,66 @@ class _IncidenciasScreenState extends State<IncidenciasScreen> {
           ],
         ]),
       ),
+      ),
     );
+  }
+
+  Future<void> _mostrarDetalle(int idIncidencia) async {
+    try {
+      final inc = await ApiService.get('/incidencias/$idIncidencia');
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('${inc['numero_incidencia']} - ${inc['estado']}'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Tipo: ${inc['tipo_incidencia']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('Descripción: ${inc['descripcion']}', style: const TextStyle(fontSize: 13)),
+                const SizedBox(height: 8),
+                Text('Ubicación: ${inc['ubicacion']}', style: const TextStyle(fontSize: 13)),
+                const SizedBox(height: 8),
+                Text('Urgencia: ${inc['nivel_urgencia']}', style: const TextStyle(fontSize: 13)),
+                const SizedBox(height: 12),
+                const Divider(),
+                const Text('Historial de cambios', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 8),
+                if (inc['historial_cambios'] != null && (inc['historial_cambios'] as List).isNotEmpty)
+                  ...(inc['historial_cambios'] as List).map((cambio) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${cambio['estado_anterior']} → ${cambio['estado_nuevo']}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('Por: ${cambio['usuario']?['nombre'] ?? 'N/A'}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                        Text(cambio['fecha_cambio']?.toString().substring(0, 19) ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                        if (cambio['comentario'] != null) ...[
+                          const SizedBox(height: 4),
+                          Text(cambio['comentario'], style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
+                        ],
+                      ],
+                    ),
+                  ))
+                else
+                  const Text('Sin cambios registrados', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar')),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', '')), backgroundColor: AppTheme.error),
+      );
+    }
   }
 
   Future<void> _cambiarEstado(int id, String nuevoEstado) async {
